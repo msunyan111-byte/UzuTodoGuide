@@ -4,10 +4,10 @@ import { SECTIONS } from "../src/data/uzu";
 import { groupItemsBySection, sectionKeyForItem } from "../src/utils";
 
 test.describe("デモTODOの画面割り当て", () => {
-  test("46件すべてが既知のUZU画面名と完了条件を持つ", () => {
+  test("51件すべてが既知のUZU画面名と完了条件を持つ", () => {
     const labels = new Set(SECTIONS.map((section) => section.label));
 
-    expect(DEMO_CHECKLIST).toHaveLength(46);
+    expect(DEMO_CHECKLIST).toHaveLength(51);
     for (const item of DEMO_CHECKLIST) {
       const prefix = item.name.match(/^【([^】]+)】/)?.[1] ?? "";
       expect(prefix, item.name).not.toBe("");
@@ -24,6 +24,7 @@ test.describe("デモTODOの画面割り当て", () => {
     expect(groups.SUMMARY).toHaveLength(2);
     expect(groups.GENRE).toHaveLength(1);
     expect(groups.CHARACTERS).toHaveLength(4);
+    expect(groups.NPC).toHaveLength(1);
     expect(groups.PHASES).toHaveLength(3);
     expect(groups.FLOW).toHaveLength(1);
     expect(groups.TEXTS).toHaveLength(4);
@@ -34,7 +35,11 @@ test.describe("デモTODOの画面割り当て", () => {
     expect(groups.TEXT_FIELDS).toHaveLength(1);
     expect(groups.TRIGGERS).toHaveLength(1);
     expect(groups.ACTIONS).toHaveLength(1);
-    expect(groups.PRODUCTION).toHaveLength(1);
+    expect(groups.BGM).toHaveLength(1);
+    expect(groups.SE).toHaveLength(1);
+    expect(groups.MOVIE).toHaveLength(1);
+    expect(groups.BACKGROUND).toHaveLength(1);
+    expect(groups.COLOR_THEME).toHaveLength(1);
     expect(groups.CONDITIONS).toHaveLength(3);
     expect(groups.SCREEN_DESIGN).toHaveLength(1);
     expect(groups.REFLECTION).toHaveLength(1);
@@ -51,6 +56,8 @@ test.describe("デモTODOの画面割り当て", () => {
   });
 
   test("API未接続時はデモTODOを画面ごとに表示する", async ({ page }) => {
+    await page.route("**/api/v1/**", (route) => route.abort());
+
     await test.step("デモ作品を開き、全体進捗と次アクションを確認する", async () => {
       await page.goto(`/#/projects/${DEMO_PROJECT_ID}`);
 
@@ -58,19 +65,30 @@ test.describe("デモTODOの画面割り当て", () => {
         page.getByRole("heading", { name: DEMO_PROJECT.title, level: 1 }),
       ).toBeVisible();
       await expect(page.locator(".inline-banner")).toContainText("デモデータ");
-      await expect(page.locator(".workspace-progress")).toContainText("8/46");
+      await expect(page.locator(".workspace-progress")).toContainText("8/51");
       await expect(page.locator(".workspace-progress-note")).toContainText(
-        "次: 【フェーズ】フェーズを作成する",
+        "次: 【NPC】NPCと表示方法を登録する",
       );
     });
 
     await test.step("キャラクター画面を開き、4件のTODOが表示される", async () => {
-      await page.getByRole("button", { name: /キャラクター/ }).first().click();
+      await expect(page.locator(".section-group-toggle", { hasText: "キャラクター" })).toBeVisible();
+      await page.locator(".section-link", { hasText: "キャラクター" }).first().click();
 
       await expect(page.getByRole("heading", { name: "キャラクター", level: 2 })).toBeVisible();
       await expect(page.locator(".check-row")).toHaveCount(4);
       await expect(page.locator(".check-row").first()).toContainText(
         "【キャラクター】プレイヤーキャラクターを登録する",
+      );
+    });
+
+    await test.step("中項目のNPCを開き、1件のTODOが表示される", async () => {
+      await page.locator(".section-link", { hasText: "NPC" }).click();
+
+      await expect(page.getByRole("heading", { name: "NPC", level: 2 })).toBeVisible();
+      await expect(page.locator(".check-row")).toHaveCount(1);
+      await expect(page.locator(".check-row").first()).toContainText(
+        "【NPC】NPCと表示方法を登録する",
       );
     });
   });

@@ -54,46 +54,46 @@ class ProjectServiceTest {
     private ProjectService projectService;
 
     /**
-     * 無料作品を作成したとき、標準チェックリスト34件と初期表示順が設定されることを検証します。
+     * 無料作品を作成したとき、標準チェックリスト39件と初期表示順が設定されることを検証します。
      */
     @Test
-    @DisplayName("無料作品の作成: 標準チェックリスト34件と初期表示順を設定する")
+    @DisplayName("無料作品の作成: 標準チェックリスト39件と初期表示順を設定する")
     void create_freeProject_createsStandardItems() {
         given(projectRepository.save(any(Project.class))).willAnswer(invocation -> invocation.getArgument(0));
         ArgumentCaptor<List<ChecklistItem>> captor = itemListCaptor();
         given(checklistItemRepository.saveAll(captor.capture())).willAnswer(invocation -> invocation.getArgument(0));
-        given(checklistItemRepository.countByProjectId(any())).willReturn(34L);
+        given(checklistItemRepository.countByProjectId(any())).willReturn(39L);
         given(checklistItemRepository.countByProjectIdAndStatus(any(), eq(ChecklistStatus.DONE))).willReturn(0L);
 
         ProjectResponse response = projectService.create(request("夜明けの証言", ReleaseType.FREE));
 
         assertThat(response.getStage()).isEqualTo(Stage.PLANNING);
         assertThat(response.isArchived()).isFalse();
-        assertThat(response.getChecklistTotal()).isEqualTo(34);
+        assertThat(response.getChecklistTotal()).isEqualTo(39);
         List<ChecklistItem> items = captor.getValue();
-        assertThat(items).hasSize(34);
+        assertThat(items).hasSize(39);
         assertThat(items).extracting(ChecklistItem::getName)
                 .contains("【作品登録】作品の基本情報を登録する", "【リリース管理】公開状態を最終確認する");
         assertThat(items).extracting(ChecklistItem::getDisplayOrder)
                 .containsExactlyElementsOf(
-                        IntStream.rangeClosed(1, 34).boxed().collect(Collectors.toList()));
+                        IntStream.rangeClosed(1, 39).boxed().collect(Collectors.toList()));
     }
 
     /**
      * 有料作品を作成したとき、有料公開用のチェック項目を含む36件が作成されることを検証します。
      */
     @Test
-    @DisplayName("有料作品の作成: 有料公開用チェックリスト36件を作成する")
+    @DisplayName("有料作品の作成: 有料公開用チェックリスト41件を作成する")
     void create_paidProject_addsPaidSpecificItem() {
         given(projectRepository.save(any(Project.class))).willAnswer(invocation -> invocation.getArgument(0));
         ArgumentCaptor<List<ChecklistItem>> captor = itemListCaptor();
         given(checklistItemRepository.saveAll(captor.capture())).willAnswer(invocation -> invocation.getArgument(0));
-        given(checklistItemRepository.countByProjectId(any())).willReturn(36L);
+        given(checklistItemRepository.countByProjectId(any())).willReturn(41L);
         given(checklistItemRepository.countByProjectIdAndStatus(any(), eq(ChecklistStatus.DONE))).willReturn(0L);
 
         ProjectResponse response = projectService.create(request("有料作品", ReleaseType.PAID));
 
-        assertThat(response.getChecklistTotal()).isEqualTo(36);
+        assertThat(response.getChecklistTotal()).isEqualTo(41);
         assertThat(captor.getValue()).extracting(ChecklistItem::getName)
                 .contains("【規約同意】売上受取人全員の同意を確認する");
     }
@@ -106,7 +106,7 @@ class ProjectServiceTest {
     void create_acceptsExplicitStage() {
         given(projectRepository.save(any(Project.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(checklistItemRepository.saveAll(anyCollection())).willAnswer(invocation -> invocation.getArgument(0));
-        given(checklistItemRepository.countByProjectId(any())).willReturn(34L);
+        given(checklistItemRepository.countByProjectId(any())).willReturn(39L);
         given(checklistItemRepository.countByProjectIdAndStatus(any(), eq(ChecklistStatus.DONE))).willReturn(0L);
 
         ProjectCreateRequest request = request("制作中作品", ReleaseType.FREE);

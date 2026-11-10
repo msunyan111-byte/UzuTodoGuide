@@ -36,7 +36,8 @@ export function nextChecklistItem(items: ChecklistItem[]): ChecklistItem | undef
 
 const SECTION_RULES: Array<{ key: string; pattern: RegExp }> = [
   { key: "SUMMARY", pattern: /作品概要|あらすじ|キービジュアル|タイトル|注意事項|作者コメント/ },
-  { key: "CHARACTERS", pattern: /キャラクター|ミッション|NPC|PC|種別/ },
+  { key: "NPC", pattern: /NPC|ノンプレイヤー/ },
+  { key: "CHARACTERS", pattern: /キャラクター|ミッション|PC|種別/ },
   { key: "PHASES", pattern: /フェーズ|投票|密談|ラウンド/ },
   { key: "FLOW", pattern: /進行|分岐|エンディング/ },
   { key: "TEXTS", pattern: /テキスト|誤字|表記|句読点/ },
@@ -45,7 +46,11 @@ const SECTION_RULES: Array<{ key: string; pattern: RegExp }> = [
   { key: "ROOMS", pattern: /ルーム|部屋|移動/ },
   { key: "TOKENS", pattern: /トークン|コマ/ },
   { key: "TEXT_FIELDS", pattern: /自由記述|入力欄/ },
-  { key: "PRODUCTION", pattern: /BGM|SE|演出|音量|効果音/ },
+  { key: "BGM", pattern: /BGM|音楽|楽曲/ },
+  { key: "SE", pattern: /SE|効果音|ナレーション/ },
+  { key: "MOVIE", pattern: /ムービー|動画再生/ },
+  { key: "BACKGROUND", pattern: /背景画像|背景の|条件付き背景/ },
+  { key: "COLOR_THEME", pattern: /カラーテーマ|色テーマ|配色テーマ/ },
   { key: "CONDITIONS", pattern: /条件|AND|OR/ },
   { key: "SCREEN_DESIGN", pattern: /画面デザイン|レイアウト|配色/ },
   { key: "DEMO", pattern: /動作確認|通し|デモ/ },

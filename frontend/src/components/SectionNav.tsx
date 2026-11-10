@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { ChecklistItem, SectionDefinition, SectionGroup } from "../types";
-import { GROUP_ORDER, PINNED_SECTIONS } from "../data/uzu";
+import type { ChecklistItem, NavGroup, SectionDefinition } from "../types";
+import { NAV_GROUP_ORDER, PINNED_SECTIONS } from "../data/uzu";
 import { sectionProgress } from "../utils";
 import { Icon } from "./Icon";
 
@@ -15,18 +15,22 @@ export function SectionNav({
   itemsBySection: Record<string, ChecklistItem[]>;
   onSelect: (key: string) => void;
 }) {
-  const [openGroups, setOpenGroups] = useState<SectionGroup[]>([
-    "アカウント",
+  const [openGroups, setOpenGroups] = useState<NavGroup[]>([
+    "キャラクター",
+    "基本項目",
+    "特殊リソース",
+    "演出",
+    "条件",
     "作品",
-    "エディタ",
     "品質",
+    "アカウント",
   ]);
 
   const pinned = PINNED_SECTIONS.map((key) => sections.find((section) => section.key === key)).filter(
     (section): section is SectionDefinition => Boolean(section),
   );
 
-  const toggleGroup = (group: SectionGroup) => {
+  const toggleGroup = (group: NavGroup) => {
     setOpenGroups((current) =>
       current.includes(group) ? current.filter((item) => item !== group) : [...current, group],
     );
@@ -60,8 +64,10 @@ export function SectionNav({
     <nav className="section-nav" aria-label="セクション">
       <div className="section-nav-label">よく使う</div>
       <div className="section-pinned">{pinned.map(renderSection)}</div>
-      {GROUP_ORDER.map((group) => {
-        const groupSections = sections.filter((section) => section.group === group);
+      {NAV_GROUP_ORDER.map((group) => {
+        const groupSections = sections.filter(
+          (section) => (section.editorGroup ?? section.group) === group,
+        );
         if (groupSections.length === 0) return null;
         const isOpen = openGroups.includes(group);
         return (

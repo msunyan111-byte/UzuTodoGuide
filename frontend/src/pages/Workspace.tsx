@@ -14,7 +14,7 @@ import { SectionMemoPanel } from "../components/workspace/SectionMemoPanel";
 import { WorkspaceAside } from "../components/workspace/WorkspaceAside";
 import { WorkspaceTopbar } from "../components/workspace/WorkspaceTopbar";
 import { DEMO_CHECKLIST, DEMO_PROJECT, DEMO_PROJECT_ID } from "../data/demo";
-import { SECTIONS } from "../data/uzu";
+import { SECTION_COUNT, SECTIONS } from "../data/uzu";
 import type { ChecklistItem, ChecklistStatus, Project, SectionDefinition } from "../types";
 import { findSection, groupItemsBySection, nextChecklistItem, sectionProgress } from "../utils";
 
@@ -233,7 +233,7 @@ export function Workspace() {
         <aside className="workspace-nav panel">
           <div className="workspace-nav-heading">
             <span className="eyebrow">UZU画面</span>
-            <span className="workspace-nav-count">39セクション</span>
+            <span className="workspace-nav-count">{SECTION_COUNT}セクション</span>
           </div>
           <SectionNav
             sections={SECTIONS}

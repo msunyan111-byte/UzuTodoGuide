@@ -69,10 +69,20 @@ export type SectionGroup =
   | "発展"
   | "共通";
 
+export type EditorGroup =
+  | "キャラクター"
+  | "基本項目"
+  | "特殊リソース"
+  | "演出"
+  | "条件";
+
+export type NavGroup = EditorGroup | SectionGroup;
+
 export interface SectionDefinition {
   key: string;
   label: string;
   group: SectionGroup;
+  editorGroup?: EditorGroup;
   order: number;
   uzuPath: string;
   purpose: string;

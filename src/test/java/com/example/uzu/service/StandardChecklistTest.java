@@ -40,6 +40,12 @@ class StandardChecklistTest {
             Path.of("src/main/resources/db/migration/V6__restructure_vampire_mansion_todos.sql");
 
     /**
+     * 編集ページ単位のTODOを追加するマイグレーション
+     */
+    private static final Path SAMPLE_PAGE_MIGRATION =
+            Path.of("src/main/resources/db/migration/V7__add_editor_page_todos.sql");
+
+    /**
      * 画面名プレフィックスを抽出する正規表現
      */
     private static final Pattern SCREEN_PREFIX = Pattern.compile("^【([^】]+)】");
@@ -55,29 +61,34 @@ class StandardChecklistTest {
     private static final Pattern SQL_COMPLETION = Pattern.compile("'[^']*完了条件:[^']*'");
 
     /**
-     * 無料作品では有料公開専用項目を除いた34件が作成されることを検証します。
+     * V7で置き換えられる旧演出TODOの項目名
+     */
+    private static final String OBSOLETE_PRODUCTION_ITEM = "【演出】BGM・SE・画面効果を設定する";
+
+    /**
+     * 無料作品では有料公開専用項目を除いた39件が作成されることを検証します。
      */
     @Test
-    @DisplayName("無料作品: 標準チェックリストを34件作成する")
-    void create_freeProject_createsThirtyFourItems() {
+    @DisplayName("無料作品: 標準チェックリストを39件作成する")
+    void create_freeProject_createsThirtyNineItems() {
         final List<ChecklistItem> items = StandardChecklist.create(UUID.randomUUID(), ReleaseType.FREE);
 
-        assertThat(items).hasSize(34);
+        assertThat(items).hasSize(39);
         assertThat(items).extracting(ChecklistItem::getName)
                 .doesNotContain("【規約同意】売上受取人全員の同意を確認する")
                 .doesNotContain("【売上・振込】振込先を登録する");
     }
 
     /**
-     * 有料作品では無料作品の項目に有料公開専用の2件を加えた36件が作成されることを検証します。
+     * 有料作品では無料作品の項目に有料公開専用の2件を加えた41件が作成されることを検証します。
      */
     @Test
-    @DisplayName("有料作品: 有料公開専用2件を含む36件を作成する")
+    @DisplayName("有料作品: 有料公開専用2件を含む41件を作成する")
     void create_paidProject_addsTwoPaidItems() {
         final List<ChecklistItem> freeItems = StandardChecklist.create(UUID.randomUUID(), ReleaseType.FREE);
         final List<ChecklistItem> paidItems = StandardChecklist.create(UUID.randomUUID(), ReleaseType.PAID);
 
-        assertThat(paidItems).hasSize(36);
+        assertThat(paidItems).hasSize(41);
         assertThat(paidItems).extracting(ChecklistItem::getName)
                 .containsAll(freeItems.stream().map(ChecklistItem::getName).collect(Collectors.toList()))
                 .contains("【規約同意】売上受取人全員の同意を確認する")
@@ -143,9 +154,51 @@ class StandardChecklistTest {
     @DisplayName("サンプルシナリオ: 画面名がフロントエンドのUZU画面定義と一致する")
     void sampleMigration_allPrefixes_existInFrontendSections() throws IOException {
         final Set<String> labels = readUzuLabels();
-        final String sql = Files.readString(SAMPLE_MIGRATION, StandardCharsets.UTF_8);
+        final String baseSql = Files.readString(SAMPLE_MIGRATION, StandardCharsets.UTF_8);
+        final String pageSql = Files.readString(SAMPLE_PAGE_MIGRATION, StandardCharsets.UTF_8);
+        final List<String> names = new ArrayList<>(extractSqlItemNames(baseSql));
+        names.remove(OBSOLETE_PRODUCTION_ITEM);
+        names.addAll(extractInsertedSqlItemNames(pageSql));
 
-        assertThat(extractSqlItemNames(sql)).allSatisfy(name -> assertThat(labels).contains(prefixOf(name)));
+        assertThat(names).hasSize(51).doesNotHaveDuplicates();
+        assertThat(names).allSatisfy(name -> assertThat(labels).contains(prefixOf(name)));
+    }
+
+    /**
+     * 編集ページ単位のマイグレーションが6件の画面名付きTODOと完了条件を持つことを検証します。
+     *
+     * @throws IOException マイグレーションを読み込めない場合
+     */
+    @Test
+    @DisplayName("サンプルシナリオ: 編集ページ単位のTODOを6件追加する")
+    void samplePageMigration_addsSixGuidedItems() throws IOException {
+        final String sql = Files.readString(SAMPLE_PAGE_MIGRATION, StandardCharsets.UTF_8);
+        final List<String> names = extractInsertedSqlItemNames(sql);
+        final int completionCount = countMatches(SQL_COMPLETION, sql);
+
+        assertThat(names).hasSize(6).doesNotHaveDuplicates();
+        assertThat(names).contains(
+                "【NPC】NPCと表示方法を登録する",
+                "【BGM】再生タイミングとループを設定する",
+                "【SE】効果音とナレーションを設定する",
+                "【ムービー】動画とスキップ設定を確認する",
+                "【背景画像】デフォルト背景と条件付き背景を設定する",
+                "【カラーテーマ】色テーマと適用タイミングを設定する");
+        assertThat(completionCount).isEqualTo(6);
+    }
+
+    /**
+     * 編集ページ単位のマイグレーションの画面名がフロントエンドのUZU画面定義に存在することを検証します。
+     *
+     * @throws IOException 対象ファイルを読み込めない場合
+     */
+    @Test
+    @DisplayName("サンプルシナリオ: 編集ページ単位の画面名がUZU画面定義と一致する")
+    void samplePageMigration_allPrefixes_existInFrontendSections() throws IOException {
+        final Set<String> labels = readUzuLabels();
+        final String sql = Files.readString(SAMPLE_PAGE_MIGRATION, StandardCharsets.UTF_8);
+
+        assertThat(extractInsertedSqlItemNames(sql)).allSatisfy(name -> assertThat(labels).contains(prefixOf(name)));
     }
 
     /**
@@ -162,6 +215,18 @@ class StandardChecklistTest {
             labels.add(matcher.group(1));
         }
         return labels;
+    }
+
+    /**
+     * SQLのINSERT以降からTODO名を抽出します。
+     *
+     * @param sql マイグレーションSQL
+     * @return TODO名の一覧
+     */
+    private List<String> extractInsertedSqlItemNames(final String sql) {
+        final int insertIndex = sql.indexOf("INSERT INTO checklist_items");
+        assertThat(insertIndex).isGreaterThanOrEqualTo(0);
+        return extractSqlItemNames(sql.substring(insertIndex));
     }
 
     /**

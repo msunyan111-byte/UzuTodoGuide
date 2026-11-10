@@ -112,7 +112,7 @@
   - 根拠: `src/main/java/com/example/uzu/domain/ReviewRecord.java:24-29` / `:44-48`、`ReviewStatus.java:6-11`
   - 完了条件: 公開形態・審査種別・合否の意味が一意になり、画面/APIで同じ言葉を使う
 
-- [ ] **DOM-11 [B]** 39セクションの段階的開示（ピン留め・最近使った・折りたたみ・検索・未設定バッジ）を検討する
+- [ ] **DOM-11 [B]** 44セクションの段階的開示（ピン留め・最近使った・大項目折りたたみ・検索・未設定バッジ）を検討する
   - 根拠: `frontend/src/components/SectionNav.tsx:18-23`、`frontend/src/data/uzu.ts`
   - 完了条件: 空セクションが常態化しても目的のセクションに到達できる
 

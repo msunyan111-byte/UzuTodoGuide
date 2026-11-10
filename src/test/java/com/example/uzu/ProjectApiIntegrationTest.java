@@ -64,12 +64,12 @@ class ProjectApiIntegrationTest {
         assertThat(created.get("releaseType").asText()).isEqualTo("FREE");
         assertThat(created.get("scoringRule").asText()).isEqualTo("TIE_ALLOWED");
         assertThat(created.get("archived").asBoolean()).isFalse();
-        assertThat(created.get("checklistTotal").asLong()).isEqualTo(34);
+        assertThat(created.get("checklistTotal").asLong()).isEqualTo(39);
         assertThat(created.get("checklistCompleted").asLong()).isZero();
         assertThat(created.get("createdAt").asText()).endsWith("+09:00");
 
         JsonNode checklist = get("/api/v1/projects/" + projectId + "/checklist", HttpStatus.OK);
-        assertThat(checklist).hasSize(34);
+        assertThat(checklist).hasSize(39);
         assertThat(checklist.get(0).get("displayOrder").asInt()).isEqualTo(1);
         assertThat(checklist.get(0).get("name").asText()).isEqualTo("【作品登録】作品の基本情報を登録する");
         assertThat(checklist.get(0).get("status").asText()).isEqualTo("NOT_STARTED");
@@ -82,7 +82,7 @@ class ProjectApiIntegrationTest {
 
         JsonNode project = get("/api/v1/projects/" + projectId, HttpStatus.OK);
         assertThat(project.get("checklistCompleted").asLong()).isEqualTo(1);
-        assertThat(project.get("checklistTotal").asLong()).isEqualTo(34);
+        assertThat(project.get("checklistTotal").asLong()).isEqualTo(39);
 
         JsonNode updated = send("/api/v1/projects/" + projectId, HttpMethod.PATCH,
                 mapOf("stage", "PLAYTEST", "scoringRule", "SOLE_TOP_REQUIRED", "memo", "テストプレイ中"), HttpStatus.OK);
@@ -92,12 +92,12 @@ class ProjectApiIntegrationTest {
 
         JsonNode added = send("/api/v1/projects/" + projectId + "/checklist", HttpMethod.POST,
                 mapOf("name", "追加の確認項目"), HttpStatus.CREATED);
-        assertThat(added.get("displayOrder").asInt()).isEqualTo(35);
+        assertThat(added.get("displayOrder").asInt()).isEqualTo(40);
         String addedId = added.get("id").asText();
 
         send("/api/v1/projects/" + projectId + "/checklist/" + addedId, HttpMethod.DELETE, null, HttpStatus.NO_CONTENT);
         JsonNode afterDelete = get("/api/v1/projects/" + projectId + "/checklist", HttpStatus.OK);
-        assertThat(afterDelete).hasSize(34);
+        assertThat(afterDelete).hasSize(39);
         for (JsonNode item : afterDelete) {
             assertThat(item.get("id").asText()).isNotEqualTo(addedId);
         }
@@ -132,11 +132,11 @@ class ProjectApiIntegrationTest {
         assertThat(target).isNotNull();
         assertThat(target.get("playerCount").asInt()).isEqualTo(4);
         assertThat(target.get("scoringRule").asText()).isEqualTo("TIE_ALLOWED");
-        assertThat(target.get("checklistTotal").asLong()).isEqualTo(46);
+        assertThat(target.get("checklistTotal").asLong()).isEqualTo(51);
 
         UUID projectId = UUID.fromString(target.get("id").asText());
         JsonNode checklist = get("/api/v1/projects/" + projectId + "/checklist", HttpStatus.OK);
-        assertThat(checklist).hasSize(46);
+        assertThat(checklist).hasSize(51);
 
         boolean hasVictimNatureIssue = false;
         boolean hasSimulationIssue = false;
@@ -173,10 +173,10 @@ class ProjectApiIntegrationTest {
         UUID freeId = UUID.fromString(free.get("id").asText());
         UUID paidId = UUID.fromString(paid.get("id").asText());
 
-        assertThat(free.get("checklistTotal").asLong()).isEqualTo(34);
-        assertThat(paid.get("checklistTotal").asLong()).isEqualTo(36);
-        assertThat(get("/api/v1/projects/" + freeId + "/checklist", HttpStatus.OK)).hasSize(34);
-        assertThat(get("/api/v1/projects/" + paidId + "/checklist", HttpStatus.OK)).hasSize(36);
+        assertThat(free.get("checklistTotal").asLong()).isEqualTo(39);
+        assertThat(paid.get("checklistTotal").asLong()).isEqualTo(41);
+        assertThat(get("/api/v1/projects/" + freeId + "/checklist", HttpStatus.OK)).hasSize(39);
+        assertThat(get("/api/v1/projects/" + paidId + "/checklist", HttpStatus.OK)).hasSize(41);
     }
 
     /**
@@ -188,7 +188,7 @@ class ProjectApiIntegrationTest {
         JsonNode created = send("/api/v1/projects", HttpMethod.POST, projectBody("有料作品", "PAID"), HttpStatus.CREATED);
         UUID projectId = UUID.fromString(created.get("id").asText());
 
-        assertThat(created.get("checklistTotal").asLong()).isEqualTo(36);
+        assertThat(created.get("checklistTotal").asLong()).isEqualTo(41);
         JsonNode checklist = get("/api/v1/projects/" + projectId + "/checklist", HttpStatus.OK);
         boolean hasPaidItem = false;
         for (JsonNode item : checklist) {
