@@ -3,10 +3,9 @@ package com.example.uzu.service;
 import com.example.uzu.domain.GuideArticle;
 import com.example.uzu.domain.GuideCategory;
 import com.example.uzu.repository.GuideArticleRepository;
+import com.example.uzu.support.TokyoTime;
 import com.example.uzu.web.dto.GuideArticleResponse;
 import com.example.uzu.web.dto.GuideCategoryResponse;
-import com.example.uzu.web.error.ApiValidationException;
-import com.example.uzu.web.error.ErrorDetail;
 import com.example.uzu.web.error.NotFoundException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -53,8 +52,18 @@ public class GuideService {
         if (guideArticleRepository.count() > 0) {
             return;
         }
-        final LocalDate checkedAt = LocalDate.now();
-        final List<GuideArticle> seedArticles = List.of(
+        final LocalDate checkedAt = TokyoTime.today();
+        guideArticleRepository.saveAll(seedArticles(checkedAt));
+    }
+
+    /**
+     * 初期投入するガイド記事を生成します。
+     *
+     * @param checkedAt 公式情報の確認日
+     * @return 初期ガイド記事
+     */
+    private List<GuideArticle> seedArticles(final LocalDate checkedAt) {
+        return List.of(
                 new GuideArticle(UUID.randomUUID(), "作成からリリースまでの流れ",
                         GuideCategory.MAKING_FLOW,
                         "作成から公開までの基本的な流れと確認ポイントを要約したガイドです。",
@@ -82,7 +91,8 @@ public class GuideService {
                 new GuideArticle(UUID.randomUUID(), "リリース管理",
                         GuideCategory.REVIEW,
                         "公開準備とセルフチェックの際に確認するポイントを整理したガイドです。",
-                        "公開予定日、料金、セール、告知情報を確認し、リリース管理に必要な情報を準備します。",
+                        "公開予定日、料金、告知情報を確認します。セール希望は公式Discordで運営に連絡し、"
+                                + "リリース管理に必要な情報を準備します。",
                         "https://docs.studio.uzu-app.com/scenariohome/release.md",
                         checkedAt),
                 new GuideArticle(UUID.randomUUID(), "詳細審査（有料公開作品）",
@@ -104,7 +114,6 @@ public class GuideService {
                         "https://docs.studio.uzu-app.com/llms.txt",
                         checkedAt)
         );
-        guideArticleRepository.saveAll(seedArticles);
     }
 
     /**
@@ -124,13 +133,11 @@ public class GuideService {
      * @param categoryCode カテゴリコード。nullまたは空の場合は絞り込まない
      * @param keyword 検索キーワード。nullまたは空の場合は絞り込まない
      * @return ガイド記事一覧
-     * @throws ApiValidationException 未対応のカテゴリが指定された場合
+     * @throws com.example.uzu.web.error.ApiValidationException 未対応のカテゴリが指定された場合
      */
     public List<GuideArticleResponse> list(final String categoryCode, final String keyword) {
-        final GuideCategory category = GuideCategory.fromValue(categoryCode);
-        if (categoryCode != null && category == null) {
-            throw new ApiValidationException(List.of(new ErrorDetail("category", "未対応のカテゴリです。")));
-        }
+        final GuideCategory category = ServiceValidation.requireOptionalEnum(
+                categoryCode, GuideCategory::fromValue, "category", "未対応のカテゴリです。");
         return findArticles(category, keyword).stream()
                 .map(GuideArticleResponse::from)
                 .collect(Collectors.toList());

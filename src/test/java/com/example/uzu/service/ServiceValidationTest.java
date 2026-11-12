@@ -1,5 +1,6 @@
 package com.example.uzu.service;
 
+import com.example.uzu.domain.GuideCategory;
 import com.example.uzu.repository.ProjectRepository;
 import com.example.uzu.web.error.ApiValidationException;
 import com.example.uzu.web.error.NotFoundException;
@@ -57,6 +58,28 @@ class ServiceValidationTest {
         assertThat(ServiceValidation.requireValue("UZU", "platform", "必須です。")).isEqualTo("UZU");
         assertThatThrownBy(() -> ServiceValidation.requireValue(null, "platform", "必須です。"))
                 .isInstanceOf(ApiValidationException.class);
+    }
+
+
+    /**
+     * 任意列挙値は未指定ならnullを返し、有効値は変換し、不正値は入力エラーになることを検証します。
+     */
+    @Test
+    @DisplayName("任意列挙値: 未指定はnull、有効値は変換、不正値は拒否する")
+    void requireOptionalEnum_handlesBlankValidAndInvalidValues() {
+        assertThat(ServiceValidation.requireOptionalEnum(
+                null, GuideCategory::fromValue, "category", "未対応のカテゴリです。")).isNull();
+        assertThat(ServiceValidation.requireOptionalEnum(
+                "   ", GuideCategory::fromValue, "category", "未対応のカテゴリです。")).isNull();
+        assertThat(ServiceValidation.requireOptionalEnum(
+                "作品概要", GuideCategory::fromValue, "category", "未対応のカテゴリです。"))
+                .isEqualTo(GuideCategory.OVERVIEW);
+        assertThatThrownBy(() -> ServiceValidation.requireOptionalEnum(
+                "UNKNOWN", GuideCategory::fromValue, "category", "未対応のカテゴリです。"))
+                .isInstanceOfSatisfying(ApiValidationException.class,
+                        ex -> assertThat(ex.getDetails())
+                                .extracting("field")
+                                .containsExactly("category"));
     }
 
     /**

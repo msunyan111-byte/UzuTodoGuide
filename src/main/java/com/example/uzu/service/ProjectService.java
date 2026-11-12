@@ -119,6 +119,34 @@ public class ProjectService {
     @Transactional
     public ProjectResponse update(final UUID projectId, final ProjectUpdateRequest request) {
         final Project project = requireProject(projectId);
+        applyUpdate(project, request);
+        projectRepository.saveAndFlush(project);
+        return toResponse(project);
+    }
+
+    /**
+     * 指定された作品をアーカイブします。
+     *
+     * @param projectId 作品ID
+     * @return アーカイブ後の作品
+     * @throws NotFoundException 作品が見つからない場合
+     */
+    @Transactional
+    public ProjectResponse archive(final UUID projectId) {
+        final Project project = requireProject(projectId);
+        project.setArchived(true);
+        projectRepository.saveAndFlush(project);
+        return toResponse(project);
+    }
+
+    /**
+     * 更新リクエストで指定された項目を作品へ反映します。
+     *
+     * @param project 更新対象の作品
+     * @param request 作品更新リクエスト
+     * @throws com.example.uzu.web.error.ApiValidationException タイトルが空白のみの場合
+     */
+    private void applyUpdate(final Project project, final ProjectUpdateRequest request) {
         updateTitle(project, request.getTitle());
         if (request.getFurigana() != null) {
             project.setFurigana(request.getFurigana());
@@ -153,23 +181,6 @@ public class ProjectService {
         if (request.getMemo() != null) {
             project.setMemo(request.getMemo());
         }
-        projectRepository.saveAndFlush(project);
-        return toResponse(project);
-    }
-
-    /**
-     * 指定された作品をアーカイブします。
-     *
-     * @param projectId 作品ID
-     * @return アーカイブ後の作品
-     * @throws NotFoundException 作品が見つからない場合
-     */
-    @Transactional
-    public ProjectResponse archive(final UUID projectId) {
-        final Project project = requireProject(projectId);
-        project.setArchived(true);
-        projectRepository.saveAndFlush(project);
-        return toResponse(project);
     }
 
     /**

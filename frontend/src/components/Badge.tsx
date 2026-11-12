@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { STAGE_LABELS, type Stage } from "../types";
+import { RELEASE_LABELS, SCORING_LABELS, STAGE_LABELS, type Project, type Stage } from "../types";
 
 type Tone = "neutral" | "purple" | "green" | "amber" | "red" | "blue" | "dark";
 
@@ -33,4 +33,26 @@ const STAGE_TONES: Record<Stage, Tone> = {
 
 export function StageBadge({ stage }: { stage: Stage }) {
   return <Badge tone={STAGE_TONES[stage]}>{STAGE_LABELS[stage]}</Badge>;
+}
+
+export function ProjectBadges({
+  project,
+  showScoring = false,
+}: {
+  project: Project;
+  showScoring?: boolean;
+}) {
+  return (
+    <>
+      <StageBadge stage={project.stage} />
+      <Badge tone={project.releaseType === "PAID" ? "amber" : "green"} outline>
+        {RELEASE_LABELS[project.releaseType]}
+      </Badge>
+      {showScoring && (
+        <Badge tone="neutral" outline>
+          {SCORING_LABELS[project.scoringRule]}
+        </Badge>
+      )}
+    </>
+  );
 }

@@ -3,7 +3,14 @@ import { api } from "../api";
 import { Icon } from "../components/Icon";
 import { Modal } from "../components/Modal";
 import { useToast } from "../components/Toast";
-import { formatDate, readStorage, writeStorage } from "../utils";
+import {
+  errorMessage,
+  formatDate,
+  OFFICIAL_DOCS_URL,
+  readStorage,
+  UZU_STUDIO_URL,
+  writeStorage,
+} from "../utils";
 
 export function Settings() {
   const toast = useToast();
@@ -32,7 +39,7 @@ export function Settings() {
       setLastBackup(now);
       toast.show("バックアップをダウンロードしました。", "success");
     } catch (error) {
-      toast.show(error instanceof Error ? error.message : "バックアップを取得できませんでした。", "error");
+      toast.show(errorMessage(error, "バックアップを取得できませんでした。"), "error");
     } finally {
       setBusy(false);
     }
@@ -50,7 +57,7 @@ export function Settings() {
       setRestorePayload(parsed as Record<string, unknown>);
       setRestoreName(file.name);
     } catch (error) {
-      toast.show(error instanceof Error ? error.message : "ファイルを読み込めませんでした。", "error");
+      toast.show(errorMessage(error, "ファイルを読み込めませんでした。"), "error");
     } finally {
       event.target.value = "";
     }
@@ -66,7 +73,7 @@ export function Settings() {
       setRestoreName("");
       toast.show("バックアップを復元しました。", "success");
     } catch (error) {
-      toast.show(error instanceof Error ? error.message : "復元できませんでした。", "error");
+      toast.show(errorMessage(error, "復元できませんでした。"), "error");
     } finally {
       setBusy(false);
     }
@@ -190,7 +197,7 @@ export function Settings() {
           <div className="settings-links">
             <a
               className="button button-ghost button-small"
-              href="https://docs.studio.uzu-app.com/"
+              href={OFFICIAL_DOCS_URL}
               target="_blank"
               rel="noreferrer"
             >
@@ -199,7 +206,7 @@ export function Settings() {
             </a>
             <a
               className="button button-ghost button-small"
-              href="https://studio.uzu-app.com/"
+              href={UZU_STUDIO_URL}
               target="_blank"
               rel="noreferrer"
             >

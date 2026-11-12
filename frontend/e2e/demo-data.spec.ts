@@ -4,10 +4,10 @@ import { SECTIONS } from "../src/data/uzu";
 import { groupItemsBySection, sectionKeyForItem } from "../src/utils";
 
 test.describe("デモTODOの画面割り当て", () => {
-  test("51件すべてが既知のUZU画面名と完了条件を持つ", () => {
+  test("54件すべてが既知のUZU画面名と完了条件を持つ", () => {
     const labels = new Set(SECTIONS.map((section) => section.label));
 
-    expect(DEMO_CHECKLIST).toHaveLength(51);
+    expect(DEMO_CHECKLIST).toHaveLength(54);
     for (const item of DEMO_CHECKLIST) {
       const prefix = item.name.match(/^【([^】]+)】/)?.[1] ?? "";
       expect(prefix, item.name).not.toBe("");
@@ -21,13 +21,13 @@ test.describe("デモTODOの画面割り当て", () => {
     const groups = groupItemsBySection(DEMO_CHECKLIST);
 
     expect(groups.CREATE).toHaveLength(1);
-    expect(groups.SUMMARY).toHaveLength(2);
+    expect(groups.SUMMARY).toHaveLength(3);
     expect(groups.GENRE).toHaveLength(1);
-    expect(groups.CHARACTERS).toHaveLength(4);
+    expect(groups.CHARACTERS).toHaveLength(5);
     expect(groups.NPC).toHaveLength(1);
     expect(groups.PHASES).toHaveLength(3);
     expect(groups.FLOW).toHaveLength(1);
-    expect(groups.TEXTS).toHaveLength(4);
+    expect(groups.TEXTS).toHaveLength(5);
     expect(groups.CLUES).toHaveLength(4);
     expect(groups.DECK).toHaveLength(1);
     expect(groups.ROOMS).toHaveLength(1);
@@ -65,20 +65,20 @@ test.describe("デモTODOの画面割り当て", () => {
         page.getByRole("heading", { name: DEMO_PROJECT.title, level: 1 }),
       ).toBeVisible();
       await expect(page.locator(".inline-banner")).toContainText("デモデータ");
-      await expect(page.locator(".workspace-progress")).toContainText("8/51");
+      await expect(page.locator(".workspace-progress")).toContainText("10/54");
       await expect(page.locator(".workspace-progress-note")).toContainText(
         "次: 【NPC】NPCと表示方法を登録する",
       );
     });
 
-    await test.step("キャラクター画面を開き、4件のTODOが表示される", async () => {
+    await test.step("キャラクター画面を開き、5件のTODOが表示される", async () => {
       await expect(page.locator(".section-group-toggle", { hasText: "キャラクター" })).toBeVisible();
       await page.locator(".section-link", { hasText: "キャラクター" }).first().click();
 
       await expect(page.getByRole("heading", { name: "キャラクター", level: 2 })).toBeVisible();
-      await expect(page.locator(".check-row")).toHaveCount(4);
+      await expect(page.locator(".check-row")).toHaveCount(5);
       await expect(page.locator(".check-row").first()).toContainText(
-        "【キャラクター】プレイヤーキャラクターを登録する",
+        "【キャラクター】人物の関係性と秘密の見せ場を整理する",
       );
     });
 

@@ -2,6 +2,7 @@ import type { Page, Route } from "@playwright/test";
 import type {
   ChecklistItem,
   ChecklistStatus,
+  GuideFaq,
   Project,
   ReleaseType,
   Stage,
@@ -21,6 +22,7 @@ export interface ApiRequestRecord {
 export interface ApiMockState {
   projects: Project[];
   checklists: Record<string, ChecklistItem[]>;
+  guideFaqs: GuideFaq[];
   requests: ApiRequestRecord[];
 }
 
@@ -28,7 +30,47 @@ export interface ApiMockState {
 export interface ApiMockSeed {
   projects: Project[];
   checklists?: Record<string, ChecklistItem[]>;
+  guideFaqs?: GuideFaq[];
 }
+
+const DEFAULT_GUIDE_FAQS: GuideFaq[] = [
+  {
+    id: "faq-1",
+    question: "BGMがアップロードできません。",
+    answer: "BGMは1分あたり2MB、かつ最大4.5MBまでです。圧縮してから再アップロードしてください。",
+    category: "MATERIAL",
+    categoryLabel: "素材・アップロード",
+    sectionKey: "BGM",
+    sourceUrl: "https://docs.studio.uzu-app.com/qanda/qanda.md#bgm-se",
+    checkedAt: "2026-11-10",
+    createdAt: BASE_TIME,
+    updatedAt: BASE_TIME,
+  },
+  {
+    id: "faq-2",
+    question: "動作確認で最初のフェーズのBGMが再生されません。",
+    answer: "Chromeの自動再生制限が原因です。音声を許可するか、Safariなど別ブラウザで確認してください。",
+    category: "CHECK",
+    categoryLabel: "動作確認",
+    sectionKey: "DEMO",
+    sourceUrl: "https://docs.studio.uzu-app.com/qanda/qanda.md#others",
+    checkedAt: "2026-11-10",
+    createdAt: BASE_TIME,
+    updatedAt: BASE_TIME,
+  },
+  {
+    id: "faq-3",
+    question: "v2からv1へ戻せますか？",
+    answer: "v2としてリリースした作品はv1へ戻せません。他のv1作品の編集は続けられます。",
+    category: "MIGRATION",
+    categoryLabel: "v1→v2移行",
+    sectionKey: "MIGRATION",
+    sourceUrl: "https://docs.studio.uzu-app.com/qanda/qanda-v1-v2.md",
+    checkedAt: "2026-11-10",
+    createdAt: BASE_TIME,
+    updatedAt: BASE_TIME,
+  },
+];
 
 let nextItemOrder = 1;
 
@@ -135,6 +177,7 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
   const state: ApiMockState = {
     projects: [...seed.projects],
     checklists: { ...(seed.checklists ?? {}) },
+    guideFaqs: [...(seed.guideFaqs ?? DEFAULT_GUIDE_FAQS)],
     requests: [],
   };
 
@@ -150,6 +193,22 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
     const archiveMatch = path.match(/^\/projects\/([^/]+)\/archive$/);
     const checklistMatch = path.match(/^\/projects\/([^/]+)\/checklist$/);
     const checklistItemMatch = path.match(/^\/projects\/([^/]+)\/checklist\/([^/]+)$/);
+    const guideFaqsMatch = path === "/guide-faqs";
+
+    if (guideFaqsMatch && method === "GET") {
+      const url = new URL(request.url());
+      const category = url.searchParams.get("category");
+      const keyword = url.searchParams.get("keyword")?.trim().toLowerCase() ?? "";
+      const faqs = state.guideFaqs.filter((faq) => {
+        if (category && faq.category !== category && faq.categoryLabel !== category) return false;
+        if (!keyword) return true;
+        return [faq.question, faq.answer, faq.categoryLabel]
+          .join(" ")
+          .toLowerCase()
+          .includes(keyword);
+      });
+      return route.fulfill(json(faqs));
+    }
 
     if (projectsMatch && method === "GET") {
       return route.fulfill(json(state.projects));

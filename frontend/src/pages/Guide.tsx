@@ -1,12 +1,11 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { Icon } from "../components/Icon";
-import { Modal } from "../components/Modal";
-import { Badge } from "../components/Badge";
-import { SECTIONS } from "../data/uzu";
+import { GuideCard } from "../components/guide/GuideCard";
+import { GuideDetailModal } from "../components/guide/GuideDetailModal";
+import { GuideFaqSection } from "../components/guide/GuideFaqSection";
+import { GROUP_ORDER, SECTIONS } from "../data/uzu";
 import type { SectionDefinition, SectionGroup } from "../types";
-import { GROUP_ORDER } from "../data/uzu";
-import { officialUrl } from "../utils";
+import { OFFICIAL_DOCS_URL } from "../utils";
 
 type TemplateFilter = "all" | "basic" | "advanced";
 
@@ -50,7 +49,7 @@ export function Guide() {
         </div>
         <a
           className="button button-primary"
-          href="https://docs.studio.uzu-app.com/"
+          href={OFFICIAL_DOCS_URL}
           target="_blank"
           rel="noreferrer"
         >
@@ -58,6 +57,8 @@ export function Guide() {
           公式ガイドを開く
         </a>
       </div>
+
+      <GuideFaqSection onSelectSection={setSelected} />
 
       <div className="guide-filter">
         <label className="search-field search-field-large">
@@ -129,125 +130,12 @@ export function Guide() {
       ) : (
         <div className="guide-grid">
           {filtered.map((section) => (
-            <article className="guide-card" key={section.key}>
-              <div className="guide-card-top">
-                <span className="guide-group">{section.group}</span>
-                <Badge tone={section.confidence === "confirmed" ? "green" : "amber"} outline>
-                  {section.confidence === "confirmed" ? "公式確認済み" : "推定"}
-                </Badge>
-              </div>
-              <h2>{section.label}</h2>
-              <p className="guide-purpose">{section.purpose}</p>
-              <div className="guide-path">{section.uzuPath}</div>
-              {section.fields.length > 0 && (
-                <div className="chip-cloud">
-                  {section.fields.slice(0, 4).map((field) => (
-                    <span className="info-chip" key={field}>
-                      {field}
-                    </span>
-                  ))}
-                  {section.fields.length > 4 && (
-                    <span className="info-chip info-chip-more">+{section.fields.length - 4}</span>
-                  )}
-                </div>
-              )}
-              {section.constraints.length > 0 && (
-                <div className="guide-constraints">
-                  <Icon name="alert" size={14} />
-                  <span>{section.constraints[0]}</span>
-                  {section.constraints.length > 1 && <em>+{section.constraints.length - 1}</em>}
-                </div>
-              )}
-              <div className="guide-card-actions">
-                <button type="button" className="text-link" onClick={() => setSelected(section)}>
-                  詳細を見る
-                  <Icon name="arrowRight" size={14} />
-                </button>
-                <a
-                  className="text-link muted-link"
-                  href={officialUrl(section.uzuPath)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  公式
-                  <Icon name="external" size={13} />
-                </a>
-              </div>
-            </article>
+            <GuideCard key={section.key} section={section} onSelect={setSelected} />
           ))}
         </div>
       )}
 
-      {selected && (
-        <Modal open onClose={() => setSelected(null)} title={selected.label} size="lg">
-          <div className="guide-detail">
-            <div className="guide-detail-meta">
-              <Badge tone="purple">{selected.group}</Badge>
-              {selected.basic === "yes" && <Badge tone="purple" outline>基本</Badge>}
-              {selected.advanced === "yes" && <Badge tone="blue" outline>発展</Badge>}
-              <Badge tone={selected.confidence === "confirmed" ? "green" : "amber"} outline>
-                {selected.confidence === "confirmed" ? "公式確認済み" : "推定"}
-              </Badge>
-            </div>
-            <p className="guide-detail-purpose">{selected.purpose}</p>
-            <div className="guide-detail-path">
-              <span>公式パス</span>
-              <code>{selected.uzuPath}</code>
-            </div>
-            <div className="guide-detail-grid">
-              <div>
-                <h3>主な設定項目</h3>
-                {selected.fields.length > 0 ? (
-                  <div className="chip-cloud">
-                    {selected.fields.map((field) => (
-                      <span className="info-chip" key={field}>
-                        {field}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="muted">項目情報はありません。</p>
-                )}
-              </div>
-              <div>
-                <h3>制約・注意</h3>
-                {selected.constraints.length > 0 ? (
-                  <ul className="tip-list">
-                    {selected.constraints.map((constraint) => (
-                      <li key={constraint}>{constraint}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="muted">大きな制約はありません。</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <h3>確認のヒント</h3>
-              <ul className="tip-list">
-                {selected.tips.map((tip) => (
-                  <li key={tip}>{tip}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="modal-actions">
-              <a
-                className="button button-primary"
-                href={officialUrl(selected.uzuPath)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Icon name="external" size={16} />
-                公式ページを開く
-              </a>
-              <Link to="/projects" className="button button-ghost" onClick={() => setSelected(null)}>
-                作品ワークスペースへ
-                <Icon name="arrowRight" size={15} />
-              </Link>
-            </div>
-          </div>
-        </Modal>
-      )}
+      {selected && <GuideDetailModal section={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }

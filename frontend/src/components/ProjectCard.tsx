@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import type { ChecklistItem, Project } from "../types";
-import { RELEASE_LABELS } from "../types";
 import { formatDate, progressPercent } from "../utils";
-import { Badge, StageBadge } from "./Badge";
+import { Badge, ProjectBadges } from "./Badge";
 import { Icon } from "./Icon";
 import { ProgressBar } from "./ProgressBar";
 
@@ -18,10 +17,7 @@ export function ProjectCard({
     <article className="project-card">
       <div className="project-card-top">
         <div className="project-card-badges">
-          <StageBadge stage={project.stage} />
-          <Badge tone={project.releaseType === "PAID" ? "amber" : "green"} outline>
-            {RELEASE_LABELS[project.releaseType]}
-          </Badge>
+          <ProjectBadges project={project} />
         </div>
         {project.archived && <Badge tone="neutral">アーカイブ</Badge>}
       </div>

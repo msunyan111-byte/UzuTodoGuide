@@ -11,7 +11,7 @@ UZU Studio の制作ガイド要点整理と、作品・チェックリスト・
 初回セットアップとして、以下を順に確認・実行してください。
 
 1. **必要なソフトウェアを用意する**
-   - JDK 11 または 17（`JAVA_HOME` を設定）
+   - Amazon Corretto 17（`JAVA_HOME` を設定）
    - Docker Desktop（PostgreSQL と Testcontainers 用）
    - Node.js 20 以上 / npm
    - Maven は不要（`./mvnw` を使用）
@@ -28,7 +28,7 @@ UZU Studio の制作ガイド要点整理と、作品・チェックリスト・
 4. **Docker Desktop を起動する**
 5. **開発ルールを確認する**（`AGENTS.md`）
 
-> Spring Boot 2.7 は JDK 11/17 を推奨。JDK 21 以降は未検証ですが、JDK 26 でもテストは通っています。
+> Spring Boot 2.7 は JDK 11/17 を推奨。CI は Amazon Corretto 17 で実行しています。JDK 21 以降は未検証ですが、JDK 26 でもテストは通っています。
 
 ## 起動手順
 
@@ -81,7 +81,7 @@ cd ..
 - 画面は Hash Router のため、静的配信でもリロード時に 404 になりません。
 - API に接続できない場合は、デモ作品「吸血鬼の館のマーダーミステリー」を表示します。デモ中の変更はブラウザ内だけに保持されます。
 - セクションの短いメモと最終確認日は `localStorage` に保存します。作品・チェックリスト・バックアップは API / DB に保存します。
-- 実装済み画面: ダッシュボード、作品一覧、作品新規作成、作品ワークスペース（セクション別チェック・次アクション・公開準備・作品編集）、UZU機能ガイド（44セクション検索）、設定・バックアップ、コンパクトモード。
+- 実装済み画面: ダッシュボード、作品一覧、作品新規作成、作品ワークスペース（セクション別チェック・次アクション・制作サポート・公開準備・作品編集）、UZU機能ガイド（44セクション検索）、設定・バックアップ、コンパクトモード。
 
 ## テスト
 
@@ -181,7 +181,9 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 │       ├── V4__refine_vampire_mansion_scenario.sql # シナリオ整合性の更新
 │       ├── V5__add_scoring_rule_to_projects.sql    # 得点ルール設定
 │       ├── V6__restructure_vampire_mansion_todos.sql # TODOの画面名・完了条件整理
-│       └── V7__add_editor_page_todos.sql           # NPC・演出配下TODOの追加
+│       ├── V7__add_editor_page_todos.sql           # NPC・演出配下TODOの追加
+│       ├── V8__add_guide_faqs.sql                  # 困ったときのQ&A追加
+│       └── V9__add_creator_support_todos_to_sample.sql # 制作講座由来TODOの追加
 └── src/test/java/com/example/uzu/
     ├── service/ProjectServiceTest.java
     ├── service/ChecklistServiceTest.java
@@ -199,17 +201,19 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 - 公式ガイドの要約記事 8 件（`guide_articles`）は起動時に投入されます。既に記事がある場合はスキップされます。
 - 動作確認用のサンプルシナリオ「吸血鬼の館のマーダーミステリー」は Flyway `V3` で DB に登録されます。
   - PAID / PLANNING / 4人 / 90分
-  - 有料作品用の標準チェックリスト 41 件
+  - 有料作品用の標準チェックリスト 44 件
   - シナリオ固有の作成 TODO 10 件
-  - 合計 51 件。未確定の設計項目は memo に `未確定` と記録
+  - 合計 54 件。未確定の設計項目は memo に `未確定` と記録
 - `V4` でサンプルのシナリオ整合性を更新します（殺人未遂、施錠時刻、ランドルフの吸血鬼ハンター設定、ルーシィの復讐対象など）。
 - `V5` で作品ごとの得点ルール `scoring_rule` を追加します。既存作品とサンプルは同数最多を許可する `TIE_ALLOWED` です。
 - `V6` でサンプルの TODO を、UZU Studio の画面名を先頭に付けた完成手順へ再構成します。
 - `V7` でサンプルにNPCと演出配下（BGM・SE・ムービー・背景画像・カラーテーマ）のTODOを追加します。
+- `V8` で公式Q&Aに基づく「困ったときのQ&A」16件を `guide_faqs` に追加します。Q&AはDBで管理し、SQLの追加・更新だけで増やせます。
+- `V9` でサンプルにプロット0・人物関係性・文章ルールのTODOを追加し、料金・セール・審査日数の説明を公式ガイドに合わせます。
 
 サンプルシナリオはアプリ本体のコードには組み込んでいません。他のシナリオは `POST /api/v1/projects` で通常どおり作成できます。サンプルが不要な場合は作品をアーカイブまたは削除してください。
 
-標準チェックリストは FREE 39 件 / PAID 41 件です。PAID では規約同意と売上・振込の確認が追加されます。項目名の先頭には UZU Studio の画面名を【】付きで表示し、初めて制作する人でも「どの画面で何をするか」と「完了条件」を追えるようにしています。
+標準チェックリストは FREE 42 件 / PAID 44 件です。PAID では規約同意と売上・振込の確認が追加されます。項目名の先頭には UZU Studio の画面名を【】付きで表示し、初めて制作する人でも「どの画面で何をするか」と「完了条件」を追えるようにしています。プロット0、人物関係性、文章ルールなど、制作講座で重視される判断項目も含みます。
 
 ## API
 
@@ -262,6 +266,36 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 | GET | `/api/v1/guides/{guideId}` | 1件取得 |
 | GET | `/api/v1/guide-categories` | カテゴリ一覧 |
 
+### ガイドQ&A
+
+| メソッド | パス | 説明 |
+| --- | --- | --- |
+| GET | `/api/v1/guide-faqs?category=MATERIAL&keyword=BGM` | 一覧。カテゴリ・キーワードは任意。カテゴリはコードまたは日本語ラベル |
+| GET | `/api/v1/guide-faqs/{faqId}` | 1件取得 |
+
+主な項目: `question`, `answer`, `category`, `categoryLabel`, `sectionKey`, `sourceUrl`, `checkedAt`。`sectionKey` はガイド画面の関連セクションを開くために使います。
+
+Q&Aは `guide_faqs` テーブルで管理します。追加・更新は新しい Flyway マイグレーションで行い、`published` を `FALSE` にするとAPIから返しません。
+
+```sql
+INSERT INTO guide_faqs (
+    id, question, answer, category, section_key, source_url, checked_at,
+    display_order, published, created_at, updated_at
+) VALUES (
+    gen_random_uuid(),
+    '質問文',
+    '回答文',
+    'OTHER',
+    'SUMMARY',
+    'https://docs.studio.uzu-app.com/',
+    DATE '2026-11-10',
+    170,
+    TRUE,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);
+```
+
 ### テストプレイ
 
 | メソッド | パス | 説明 |
@@ -289,7 +323,7 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 
 | メソッド | パス | 説明 |
 | --- | --- | --- |
-| GET | `/api/v1/backup` | 全データを JSON で出力 |
+| GET | `/api/v1/backup` | 全データを JSON で出力（`guideArticles` / `guideFaqs` を含む） |
 | POST | `/api/v1/restore` | JSON から復元 |
 
 ### エラー形式
@@ -341,7 +375,7 @@ React UI は `frontend/` に実装済みです。設計上の未決事項と今�
 - `overview/makingflow/submit/check.md`
 - `overview/makingflow/submit/questionnaire.md`
 - `overview/makingflow/submit/common-mistake.md`
-- `visual-regulation.md`
+- `overview/visual-regulation.md`
 - `basic-features/demo.md`
 - `basic-features/new-version.md`
 - `others/sale.md`

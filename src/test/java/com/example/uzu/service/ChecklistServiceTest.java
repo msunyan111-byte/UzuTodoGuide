@@ -83,6 +83,47 @@ class ChecklistServiceTest {
     }
 
     /**
+     * 状態を指定して項目を追加したとき、指定した状態が使われることを検証します。
+     */
+    @Test
+    @DisplayName("チェック項目の追加: 状態指定時は指定値を使う")
+    void add_usesSpecifiedStatus() {
+        UUID projectId = UUID.randomUUID();
+        given(projectRepository.existsById(projectId)).willReturn(true);
+        given(checklistItemRepository.countByProjectId(projectId)).willReturn(0L);
+        given(checklistItemRepository.saveAndFlush(any(ChecklistItem.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        ChecklistItemCreateRequest request = new ChecklistItemCreateRequest();
+        request.setName("完了項目");
+        request.setStatus(ChecklistStatus.DONE);
+
+        ChecklistItemResponse response = checklistService.add(projectId, request);
+
+        assertThat(response.getStatus()).isEqualTo(ChecklistStatus.DONE);
+    }
+
+    /**
+     * 表示順を指定して項目を追加したとき、指定した表示順が使われることを検証します。
+     */
+    @Test
+    @DisplayName("チェック項目の追加: 表示順指定時は指定値を使う")
+    void add_usesSpecifiedDisplayOrder() {
+        UUID projectId = UUID.randomUUID();
+        given(projectRepository.existsById(projectId)).willReturn(true);
+        given(checklistItemRepository.saveAndFlush(any(ChecklistItem.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        ChecklistItemCreateRequest request = new ChecklistItemCreateRequest();
+        request.setName("表示順指定項目");
+        request.setDisplayOrder(3);
+
+        ChecklistItemResponse response = checklistService.add(projectId, request);
+
+        assertThat(response.getDisplayOrder()).isEqualTo(3);
+    }
+
+    /**
      * 更新リクエストの指定項目が反映され、名称の前後空白が除去されることを検証します。
      */
     @Test
@@ -96,14 +137,49 @@ class ChecklistServiceTest {
 
         ChecklistItemUpdateRequest request = new ChecklistItemUpdateRequest();
         request.setName("  new name  ");
+        request.setDescription("説明");
         request.setStatus(ChecklistStatus.DONE);
         request.setMemo("done memo");
+        request.setDueDate(LocalDate.of(2026, 12, 31));
+        request.setDisplayOrder(7);
 
         ChecklistItemResponse response = checklistService.update(projectId, itemId, request);
 
         assertThat(response.getName()).isEqualTo("new name");
+        assertThat(response.getDescription()).isEqualTo("説明");
         assertThat(response.getStatus()).isEqualTo(ChecklistStatus.DONE);
         assertThat(response.getMemo()).isEqualTo("done memo");
+        assertThat(response.getDueDate()).isEqualTo(LocalDate.of(2026, 12, 31));
+        assertThat(response.getDisplayOrder()).isEqualTo(7);
+    }
+
+
+    /**
+     * 更新リクエストが空の場合、既存のチェック項目を変更しないことを検証します。
+     */
+    @Test
+    @DisplayName("チェック項目の更新: 未指定項目は変更しない")
+    void update_ignoresUnspecifiedFields() {
+        UUID projectId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+        ChecklistItem item = new ChecklistItem(itemId, projectId, "old", 1);
+        item.setDescription("説明");
+        item.setStatus(ChecklistStatus.DONE);
+        item.setMemo("メモ");
+        item.setDueDate(LocalDate.of(2026, 12, 31));
+        item.setDisplayOrder(5);
+        given(checklistItemRepository.findByIdAndProjectId(itemId, projectId)).willReturn(Optional.of(item));
+        given(checklistItemRepository.saveAndFlush(item)).willReturn(item);
+
+        ChecklistItemResponse response = checklistService.update(
+                projectId, itemId, new ChecklistItemUpdateRequest());
+
+        assertThat(response.getName()).isEqualTo("old");
+        assertThat(response.getDescription()).isEqualTo("説明");
+        assertThat(response.getStatus()).isEqualTo(ChecklistStatus.DONE);
+        assertThat(response.getMemo()).isEqualTo("メモ");
+        assertThat(response.getDueDate()).isEqualTo(LocalDate.of(2026, 12, 31));
+        assertThat(response.getDisplayOrder()).isEqualTo(5);
     }
 
     /**

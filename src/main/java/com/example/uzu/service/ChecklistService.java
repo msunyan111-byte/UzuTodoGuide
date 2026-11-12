@@ -73,7 +73,7 @@ public class ChecklistService {
         final String name = ServiceValidation.requireText(request.getName(), "name", "必須項目です。");
         final int displayOrder = request.getDisplayOrder() != null
                 ? request.getDisplayOrder()
-                : (int) checklistItemRepository.countByProjectId(projectId) + 1;
+                : Math.toIntExact(checklistItemRepository.countByProjectId(projectId)) + 1;
         final ChecklistItem item = new ChecklistItem(UUID.randomUUID(), projectId, name, displayOrder);
         item.setDescription(request.getDescription());
         item.setMemo(request.getMemo());
@@ -98,6 +98,18 @@ public class ChecklistService {
     public ChecklistItemResponse update(final UUID projectId, final UUID itemId,
                                         final ChecklistItemUpdateRequest request) {
         final ChecklistItem item = requireItem(projectId, itemId);
+        applyUpdate(item, request);
+        return ChecklistItemResponse.from(checklistItemRepository.saveAndFlush(item));
+    }
+
+    /**
+     * 更新リクエストで指定された項目をチェックリスト項目へ反映します。
+     *
+     * @param item 更新対象のチェックリスト項目
+     * @param request チェックリスト項目更新リクエスト
+     * @throws com.example.uzu.web.error.ApiValidationException 項目名が空白のみの場合
+     */
+    private void applyUpdate(final ChecklistItem item, final ChecklistItemUpdateRequest request) {
         if (request.getName() != null) {
             item.setName(ServiceValidation.requireText(request.getName(), "name", "必須項目です。"));
         }
@@ -116,7 +128,6 @@ public class ChecklistService {
         if (request.getDisplayOrder() != null) {
             item.setDisplayOrder(request.getDisplayOrder());
         }
-        return ChecklistItemResponse.from(checklistItemRepository.saveAndFlush(item));
     }
 
     /**

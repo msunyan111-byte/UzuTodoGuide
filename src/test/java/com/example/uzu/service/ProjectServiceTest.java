@@ -4,6 +4,7 @@ import com.example.uzu.domain.ChecklistItem;
 import com.example.uzu.domain.ChecklistStatus;
 import com.example.uzu.domain.Project;
 import com.example.uzu.domain.ReleaseType;
+import com.example.uzu.domain.ScoringRule;
 import com.example.uzu.domain.Stage;
 import com.example.uzu.repository.ChecklistItemRepository;
 import com.example.uzu.repository.ProjectRepository;
@@ -54,46 +55,46 @@ class ProjectServiceTest {
     private ProjectService projectService;
 
     /**
-     * 無料作品を作成したとき、標準チェックリスト39件と初期表示順が設定されることを検証します。
+     * 無料作品を作成したとき、標準チェックリスト42件と初期表示順が設定されることを検証します。
      */
     @Test
-    @DisplayName("無料作品の作成: 標準チェックリスト39件と初期表示順を設定する")
+    @DisplayName("無料作品の作成: 標準チェックリスト42件と初期表示順を設定する")
     void create_freeProject_createsStandardItems() {
         given(projectRepository.save(any(Project.class))).willAnswer(invocation -> invocation.getArgument(0));
         ArgumentCaptor<List<ChecklistItem>> captor = itemListCaptor();
         given(checklistItemRepository.saveAll(captor.capture())).willAnswer(invocation -> invocation.getArgument(0));
-        given(checklistItemRepository.countByProjectId(any())).willReturn(39L);
+        given(checklistItemRepository.countByProjectId(any())).willReturn(42L);
         given(checklistItemRepository.countByProjectIdAndStatus(any(), eq(ChecklistStatus.DONE))).willReturn(0L);
 
         ProjectResponse response = projectService.create(request("夜明けの証言", ReleaseType.FREE));
 
         assertThat(response.getStage()).isEqualTo(Stage.PLANNING);
         assertThat(response.isArchived()).isFalse();
-        assertThat(response.getChecklistTotal()).isEqualTo(39);
+        assertThat(response.getChecklistTotal()).isEqualTo(42);
         List<ChecklistItem> items = captor.getValue();
-        assertThat(items).hasSize(39);
+        assertThat(items).hasSize(42);
         assertThat(items).extracting(ChecklistItem::getName)
                 .contains("【作品登録】作品の基本情報を登録する", "【リリース管理】公開状態を最終確認する");
         assertThat(items).extracting(ChecklistItem::getDisplayOrder)
                 .containsExactlyElementsOf(
-                        IntStream.rangeClosed(1, 39).boxed().collect(Collectors.toList()));
+                        IntStream.rangeClosed(1, 42).boxed().collect(Collectors.toList()));
     }
 
     /**
-     * 有料作品を作成したとき、有料公開用のチェック項目を含む36件が作成されることを検証します。
+     * 有料作品を作成したとき、有料公開用のチェック項目を含む44件が作成されることを検証します。
      */
     @Test
-    @DisplayName("有料作品の作成: 有料公開用チェックリスト41件を作成する")
+    @DisplayName("有料作品の作成: 有料公開用チェックリスト44件を作成する")
     void create_paidProject_addsPaidSpecificItem() {
         given(projectRepository.save(any(Project.class))).willAnswer(invocation -> invocation.getArgument(0));
         ArgumentCaptor<List<ChecklistItem>> captor = itemListCaptor();
         given(checklistItemRepository.saveAll(captor.capture())).willAnswer(invocation -> invocation.getArgument(0));
-        given(checklistItemRepository.countByProjectId(any())).willReturn(41L);
+        given(checklistItemRepository.countByProjectId(any())).willReturn(44L);
         given(checklistItemRepository.countByProjectIdAndStatus(any(), eq(ChecklistStatus.DONE))).willReturn(0L);
 
         ProjectResponse response = projectService.create(request("有料作品", ReleaseType.PAID));
 
-        assertThat(response.getChecklistTotal()).isEqualTo(41);
+        assertThat(response.getChecklistTotal()).isEqualTo(44);
         assertThat(captor.getValue()).extracting(ChecklistItem::getName)
                 .contains("【規約同意】売上受取人全員の同意を確認する");
     }
@@ -106,13 +107,17 @@ class ProjectServiceTest {
     void create_acceptsExplicitStage() {
         given(projectRepository.save(any(Project.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(checklistItemRepository.saveAll(anyCollection())).willAnswer(invocation -> invocation.getArgument(0));
-        given(checklistItemRepository.countByProjectId(any())).willReturn(39L);
+        given(checklistItemRepository.countByProjectId(any())).willReturn(42L);
         given(checklistItemRepository.countByProjectIdAndStatus(any(), eq(ChecklistStatus.DONE))).willReturn(0L);
 
         ProjectCreateRequest request = request("制作中作品", ReleaseType.FREE);
         request.setStage(Stage.IN_PROGRESS);
+        request.setScoringRule(ScoringRule.SOLE_TOP_REQUIRED);
 
-        assertThat(projectService.create(request).getStage()).isEqualTo(Stage.IN_PROGRESS);
+        ProjectResponse response = projectService.create(request);
+
+        assertThat(response.getStage()).isEqualTo(Stage.IN_PROGRESS);
+        assertThat(response.getScoringRule()).isEqualTo(ScoringRule.SOLE_TOP_REQUIRED);
     }
 
     /**
@@ -152,6 +157,69 @@ class ProjectServiceTest {
         assertThat(response.getStage()).isEqualTo(Stage.PLAYTEST);
         assertThat(response.getFurigana()).isNull();
         verify(projectRepository).saveAndFlush(project);
+    }
+
+    /**
+     * 更新リクエストで全項目を指定したとき、すべての項目が作品へ反映されることを検証します。
+     */
+    @Test
+    @DisplayName("作品の更新: 全項目を指定した場合はすべて反映する")
+    void update_appliesAllProvidedFields() {
+        UUID id = UUID.randomUUID();
+        Project project = project(id, "old");
+        given(projectRepository.findById(id)).willReturn(Optional.of(project));
+        given(projectRepository.saveAndFlush(project)).willReturn(project);
+        given(checklistItemRepository.countByProjectId(id)).willReturn(13L);
+        given(checklistItemRepository.countByProjectIdAndStatus(id, ChecklistStatus.DONE)).willReturn(0L);
+
+        ProjectUpdateRequest request = new ProjectUpdateRequest();
+        request.setTitle("new title");
+        request.setFurigana("にゅー");
+        request.setGenre("ホラー");
+        request.setPlayerCount(5);
+        request.setEstimatedMinutes(120);
+        request.setReleaseType(ReleaseType.PAID);
+        request.setStage(Stage.REVIEW_SUBMITTED);
+        request.setScoringRule(ScoringRule.SOLE_TOP_REQUIRED);
+        request.setStudioWorkId("work-1");
+        request.setStudioUrl("https://studio.uzu-app.com/work-1");
+        request.setPublicUrl("https://example.com/work-1");
+        request.setMemo("公開前メモ");
+
+        ProjectResponse response = projectService.update(id, request);
+
+        assertThat(response.getTitle()).isEqualTo("new title");
+        assertThat(project.getFurigana()).isEqualTo("にゅー");
+        assertThat(project.getGenre()).isEqualTo("ホラー");
+        assertThat(project.getPlayerCount()).isEqualTo(5);
+        assertThat(project.getEstimatedMinutes()).isEqualTo(120);
+        assertThat(project.getReleaseType()).isEqualTo(ReleaseType.PAID);
+        assertThat(project.getStage()).isEqualTo(Stage.REVIEW_SUBMITTED);
+        assertThat(project.getScoringRule()).isEqualTo(ScoringRule.SOLE_TOP_REQUIRED);
+        assertThat(project.getStudioWorkId()).isEqualTo("work-1");
+        assertThat(project.getStudioUrl()).isEqualTo("https://studio.uzu-app.com/work-1");
+        assertThat(project.getPublicUrl()).isEqualTo("https://example.com/work-1");
+        assertThat(project.getMemo()).isEqualTo("公開前メモ");
+    }
+
+    /**
+     * 更新リクエストが空の場合、既存の作品情報を変更しないことを検証します。
+     */
+    @Test
+    @DisplayName("作品の更新: 未指定項目は変更しない")
+    void update_ignoresUnspecifiedFields() {
+        UUID id = UUID.randomUUID();
+        Project project = project(id, "old");
+        Stage originalStage = project.getStage();
+        given(projectRepository.findById(id)).willReturn(Optional.of(project));
+        given(projectRepository.saveAndFlush(project)).willReturn(project);
+        given(checklistItemRepository.countByProjectId(id)).willReturn(0L);
+        given(checklistItemRepository.countByProjectIdAndStatus(id, ChecklistStatus.DONE)).willReturn(0L);
+
+        ProjectResponse response = projectService.update(id, new ProjectUpdateRequest());
+
+        assertThat(response.getTitle()).isEqualTo("old");
+        assertThat(project.getStage()).isEqualTo(originalStage);
     }
 
     /**

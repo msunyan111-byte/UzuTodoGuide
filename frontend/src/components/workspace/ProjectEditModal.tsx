@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { api } from "../../api";
 import type { Project, ReleaseType, ScoringRule, Stage } from "../../types";
 import { RELEASE_LABELS, SCORING_LABELS, STAGE_LABELS } from "../../types";
+import { errorMessage } from "../../utils";
 import { Modal } from "../Modal";
 import { useToast } from "../Toast";
 
@@ -59,7 +60,7 @@ export function ProjectEditModal({
       toast.show("作品情報を更新しました。", "success");
       onClose();
     } catch (error) {
-      toast.show(error instanceof Error ? error.message : "更新できませんでした。", "error");
+      toast.show(errorMessage(error, "更新できませんでした。"), "error");
       setSaving(false);
     }
   };

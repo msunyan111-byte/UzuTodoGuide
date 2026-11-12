@@ -262,6 +262,42 @@ class SupportingApiIntegrationTest {
     }
 
     /**
+     * ガイドQ&Aの一覧・カテゴリ絞り込み・キーワード検索・詳細取得を検証します。
+     */
+    @Test
+    @DisplayName("ガイドQ&A: 一覧・カテゴリ・検索・詳細取得が動作する")
+    void guideFaqEndpoints_supportListCategorySearchAndDetail() {
+        final JsonNode allFaqs = get("/api/v1/guide-faqs", HttpStatus.OK);
+        assertThat(allFaqs).hasSize(16);
+        final JsonNode firstFaq = allFaqs.get(0);
+        final String faqId = firstFaq.get("id").asText();
+        assertThat(firstFaq.get("category").asText()).isEqualTo("CHARACTER");
+        assertThat(firstFaq.get("categoryLabel").asText()).isEqualTo("キャラクター");
+        assertThat(firstFaq.get("sectionKey").asText()).isEqualTo("CHARACTERS");
+
+        final JsonNode byCategory = get("/api/v1/guide-faqs?category=CHARACTER", HttpStatus.OK);
+        assertThat(byCategory).hasSize(3);
+
+        final JsonNode byJapaneseCategory = get(
+                "/api/v1/guide-faqs?category=" + encode("キャラクター"), HttpStatus.OK);
+        assertThat(byJapaneseCategory).hasSize(3);
+
+        final JsonNode byKeyword = get("/api/v1/guide-faqs?keyword=BGM", HttpStatus.OK);
+        assertThat(byKeyword).hasSize(3);
+
+        final JsonNode invalidCategory = get("/api/v1/guide-faqs?category=UNKNOWN", HttpStatus.BAD_REQUEST);
+        assertThat(invalidCategory.get("error").get("code").asText()).isEqualTo("VALIDATION_ERROR");
+
+        final JsonNode detail = get("/api/v1/guide-faqs/" + faqId, HttpStatus.OK);
+        assertThat(detail.get("id").asText()).isEqualTo(faqId);
+        assertThat(detail.get("checkedAt").asText()).isEqualTo("2026-11-10");
+        assertThat(detail.get("createdAt").asText()).endsWith("+09:00");
+
+        final JsonNode missingFaq = get("/api/v1/guide-faqs/" + UUID.randomUUID(), HttpStatus.NOT_FOUND);
+        assertThat(missingFaq.get("error").get("code").asText()).isEqualTo("NOT_FOUND");
+    }
+
+    /**
      * バックアップのエクスポートと、空・不正な復元データの扱いを検証します。
      */
     @Test
@@ -276,6 +312,7 @@ class SupportingApiIntegrationTest {
         assertThat(backup.has("reviewRecords")).isTrue();
         assertThat(backup.has("reviewIssues")).isTrue();
         assertThat(backup.has("guideArticles")).isTrue();
+        assertThat(backup.has("guideFaqs")).isTrue();
         assertThat(containsId(backup.get("projects"), projectId)).isTrue();
 
         final JsonNode restored = send("/api/v1/restore", HttpMethod.POST, mapOf(

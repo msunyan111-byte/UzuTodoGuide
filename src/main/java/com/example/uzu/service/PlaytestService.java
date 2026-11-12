@@ -107,6 +107,17 @@ public class PlaytestService {
     public PlaytestRecordResponse update(final UUID projectId, final UUID playtestId,
                                          final PlaytestRecordUpdateRequest request) {
         final PlaytestRecord record = requirePlaytest(projectId, playtestId);
+        applyUpdate(record, request);
+        return PlaytestRecordResponse.from(playtestRecordRepository.saveAndFlush(record));
+    }
+
+    /**
+     * 更新リクエストで指定された項目をテストプレイ記録へ反映します。
+     *
+     * @param record 更新対象のテストプレイ記録
+     * @param request テストプレイ記録更新リクエスト
+     */
+    private void applyUpdate(final PlaytestRecord record, final PlaytestRecordUpdateRequest request) {
         if (request.getPlayedAt() != null) {
             record.setPlayedAt(request.getPlayedAt());
         }
@@ -131,7 +142,6 @@ public class PlaytestService {
         if (request.getMemo() != null) {
             record.setMemo(request.getMemo());
         }
-        return PlaytestRecordResponse.from(playtestRecordRepository.saveAndFlush(record));
     }
 
     /**

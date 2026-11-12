@@ -1,5 +1,6 @@
 package com.example.uzu.web;
 
+import com.example.uzu.service.ReviewIssueService;
 import com.example.uzu.service.ReviewService;
 import com.example.uzu.web.dto.ReviewIssueCreateRequest;
 import com.example.uzu.web.dto.ReviewIssueResponse;
@@ -30,17 +31,24 @@ import java.util.UUID;
 public class ReviewController {
 
     /**
-     * 審査サービス
+     * 審査記録サービス
      */
     private final ReviewService reviewService;
 
     /**
+     * 審査指摘事項サービス
+     */
+    private final ReviewIssueService reviewIssueService;
+
+    /**
      * 審査コントローラを生成します。
      *
-     * @param reviewService 審査サービス
+     * @param reviewService 審査記録サービス
+     * @param reviewIssueService 審査指摘事項サービス
      */
-    public ReviewController(final ReviewService reviewService) {
+    public ReviewController(final ReviewService reviewService, final ReviewIssueService reviewIssueService) {
         this.reviewService = reviewService;
+        this.reviewIssueService = reviewIssueService;
     }
 
     /**
@@ -93,7 +101,7 @@ public class ReviewController {
     @GetMapping("/reviews/{reviewId}/issues")
     public List<ReviewIssueResponse> listIssues(@PathVariable final UUID projectId,
                                                 @PathVariable final UUID reviewId) {
-        return reviewService.findIssues(projectId, reviewId);
+        return reviewIssueService.findIssues(projectId, reviewId);
     }
 
     /**
@@ -109,7 +117,7 @@ public class ReviewController {
     public ReviewIssueResponse addIssue(@PathVariable final UUID projectId,
                                         @PathVariable final UUID reviewId,
                                         @Valid @RequestBody final ReviewIssueCreateRequest request) {
-        return reviewService.addIssue(projectId, reviewId, request);
+        return reviewIssueService.addIssue(projectId, reviewId, request);
     }
 
     /**
@@ -126,7 +134,7 @@ public class ReviewController {
                                            @PathVariable final UUID reviewId,
                                            @PathVariable final UUID issueId,
                                            @Valid @RequestBody final ReviewIssueUpdateRequest request) {
-        return reviewService.updateIssue(projectId, reviewId, issueId, request);
+        return reviewIssueService.updateIssue(projectId, reviewId, issueId, request);
     }
 
     /**
@@ -141,6 +149,6 @@ public class ReviewController {
     public void deleteIssue(@PathVariable final UUID projectId,
                             @PathVariable final UUID reviewId,
                             @PathVariable final UUID issueId) {
-        reviewService.deleteIssue(projectId, reviewId, issueId);
+        reviewIssueService.deleteIssue(projectId, reviewId, issueId);
     }
 }

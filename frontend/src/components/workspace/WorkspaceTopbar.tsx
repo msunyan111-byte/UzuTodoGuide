@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import type { ChecklistItem, Project, SectionDefinition } from "../../types";
-import { RELEASE_LABELS, SCORING_LABELS } from "../../types";
-import { formatDate } from "../../utils";
-import { Badge, StageBadge } from "../Badge";
+import { formatDate, studioUrl } from "../../utils";
+import { ProjectBadges } from "../Badge";
 import { Icon } from "../Icon";
 import { ProgressBar } from "../ProgressBar";
 
@@ -43,7 +42,7 @@ export function WorkspaceTopbar({
           </button>
           <a
             className="button button-primary button-small"
-            href={project.studioUrl ?? "https://studio.uzu-app.com/"}
+            href={studioUrl(project.studioUrl)}
             target="_blank"
             rel="noreferrer"
           >
@@ -56,13 +55,7 @@ export function WorkspaceTopbar({
       <header className="workspace-header">
         <div>
           <div className="hero-labels">
-            <StageBadge stage={project.stage} />
-            <Badge tone={project.releaseType === "PAID" ? "amber" : "green"} outline>
-              {RELEASE_LABELS[project.releaseType]}
-            </Badge>
-            <Badge tone="neutral" outline>
-              {SCORING_LABELS[project.scoringRule]}
-            </Badge>
+            <ProjectBadges project={project} showScoring />
           </div>
           <h1>{project.title}</h1>
           <p className="workspace-subtitle">

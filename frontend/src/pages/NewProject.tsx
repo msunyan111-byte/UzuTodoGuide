@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
+import { errorMessage } from "../utils";
 import { useToast } from "../components/Toast";
 import { Icon } from "../components/Icon";
 import type { ReleaseType, ScoringRule } from "../types";
@@ -43,7 +44,7 @@ export function NewProject() {
       toast.show("作品を作成しました。", "success");
       navigate(`/projects/${project.id}`);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "作品を作成できませんでした。");
+      setError(errorMessage(submitError, "作品を作成できませんでした。"));
       setSaving(false);
     }
   };

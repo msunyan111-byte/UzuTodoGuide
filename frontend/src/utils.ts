@@ -1,6 +1,12 @@
 import { SECTIONS } from "./data/uzu";
 import type { ChecklistItem, Project, SectionDefinition } from "./types";
 
+/** UZU StudioのトップURL */
+export const UZU_STUDIO_URL = "https://studio.uzu-app.com/";
+
+/** UZU公式ガイドのトップURL */
+export const OFFICIAL_DOCS_URL = "https://docs.studio.uzu-app.com/";
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "未設定";
   const date = new Date(value);
@@ -102,7 +108,15 @@ export function findSection(
 }
 
 export function officialUrl(path: string): string {
-  return `https://docs.studio.uzu-app.com/${path}`;
+  return `${OFFICIAL_DOCS_URL}${path.replace(/^\/+/, "")}`;
+}
+
+export function studioUrl(value: string | null | undefined): string {
+  return value || UZU_STUDIO_URL;
+}
+
+export function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 export function copyText(text: string): Promise<void> {

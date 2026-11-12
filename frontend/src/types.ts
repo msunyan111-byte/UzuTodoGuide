@@ -95,6 +95,29 @@ export interface SectionDefinition {
   confidence: "confirmed" | "estimated";
 }
 
+export type GuideFaqCategory =
+  | "CHARACTER"
+  | "PHASE"
+  | "TEXT"
+  | "MATERIAL"
+  | "CHECK"
+  | "RELEASE"
+  | "MIGRATION"
+  | "OTHER";
+
+export interface GuideFaq {
+  id: string;
+  question: string;
+  answer: string;
+  category: GuideFaqCategory;
+  categoryLabel: string;
+  sectionKey: string | null;
+  sourceUrl: string;
+  checkedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const STAGE_LABELS: Record<Stage, string> = {
   PLANNING: "企画",
   IN_PROGRESS: "制作中",

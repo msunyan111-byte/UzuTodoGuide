@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Icon, type IconName } from "./Icon";
+import { OFFICIAL_DOCS_URL } from "../utils";
 
 const navItems: Array<{ to: string; label: string; icon: IconName; end?: boolean }> = [
   { to: "/", label: "ダッシュボード", icon: "dashboard", end: true },
@@ -75,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <a
           className="sidebar-external"
-          href="https://docs.studio.uzu-app.com/"
+          href={OFFICIAL_DOCS_URL}
           target="_blank"
           rel="noreferrer"
           onClick={() => setMobileOpen(false)}
@@ -102,7 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span className="mobile-brand">uzu-todo-guide</span>
           <a
             className="icon-button"
-            href="https://docs.studio.uzu-app.com/"
+            href={OFFICIAL_DOCS_URL}
             target="_blank"
             rel="noreferrer"
             aria-label="公式ガイド"

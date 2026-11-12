@@ -1,5 +1,6 @@
 package com.example.uzu.support;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -24,6 +25,15 @@ public final class TokyoTime {
      */
     public static LocalDateTime now() {
         return LocalDateTime.now(ZONE);
+    }
+
+    /**
+     * 東京時間の現在日付を取得します。
+     *
+     * @return 東京時間の現在日付
+     */
+    public static LocalDate today() {
+        return LocalDate.now(ZONE);
     }
 
     /**

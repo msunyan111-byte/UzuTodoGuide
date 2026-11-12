@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,7 +36,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ApiValidationException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(final ApiValidationException ex) {
         return ResponseEntity.badRequest()
-                .body(ApiErrorResponse.of("VALIDATION_ERROR", ex.getMessage(), ex.getDetails()));
+                .body(ApiErrorResponse.of(ApiErrorCode.VALIDATION_ERROR.name(), ex.getMessage(), ex.getDetails()));
     }
 
     /**
@@ -49,7 +51,7 @@ public class ApiExceptionHandler {
                 .map(this::toDetail)
                 .collect(Collectors.toList());
         return ResponseEntity.badRequest()
-                .body(ApiErrorResponse.of("VALIDATION_ERROR", "入力内容を確認してください。", details));
+                .body(ApiErrorResponse.of(ApiErrorCode.VALIDATION_ERROR.name(), "入力内容を確認してください。", details));
     }
 
     /**
@@ -61,7 +63,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleUnreadable(final HttpMessageNotReadableException ex) {
         return ResponseEntity.badRequest()
-                .body(ApiErrorResponse.of("VALIDATION_ERROR", "入力内容を確認してください。",
+                .body(ApiErrorResponse.of(ApiErrorCode.VALIDATION_ERROR.name(), "入力内容を確認してください。",
                         List.of(new ErrorDetail("body", "JSON形式または値が不正です。"))));
     }
 
@@ -74,8 +76,37 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(final MethodArgumentTypeMismatchException ex) {
         return ResponseEntity.badRequest()
-                .body(ApiErrorResponse.of("VALIDATION_ERROR", "入力内容を確認してください。",
+                .body(ApiErrorResponse.of(ApiErrorCode.VALIDATION_ERROR.name(), "入力内容を確認してください。",
                         List.of(new ErrorDetail(ex.getName(), "値が不正です。"))));
+    }
+
+
+    /**
+     * 未対応のHTTPメソッドをHTTP 405へ変換します。
+     *
+     * @param ex 未対応のHTTPメソッド例外
+     * @return エラーレスポンス
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodNotAllowed(
+            final HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiErrorResponse.of(ApiErrorCode.METHOD_NOT_ALLOWED.name(),
+                        "このHTTPメソッドは利用できません。", List.of()));
+    }
+
+    /**
+     * 未対応のメディアタイプをHTTP 415へ変換します。
+     *
+     * @param ex 未対応のメディアタイプ例外
+     * @return エラーレスポンス
+     */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiErrorResponse> handleMediaTypeNotSupported(
+            final HttpMediaTypeNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(ApiErrorResponse.of(ApiErrorCode.UNSUPPORTED_MEDIA_TYPE.name(),
+                        "このメディアタイプは利用できません。", List.of()));
     }
 
     /**
@@ -87,7 +118,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(final NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiErrorResponse.of("NOT_FOUND", ex.getMessage(), List.of()));
+                .body(ApiErrorResponse.of(ApiErrorCode.NOT_FOUND.name(), ex.getMessage(), List.of()));
     }
 
     /**
@@ -100,7 +131,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleUnexpected(final Exception ex) {
         log.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiErrorResponse.of("INTERNAL_ERROR", "サーバーエラーが発生しました。", List.of()));
+                .body(ApiErrorResponse.of(ApiErrorCode.INTERNAL_ERROR.name(), "サーバーエラーが発生しました。", List.of()));
     }
 
     /**

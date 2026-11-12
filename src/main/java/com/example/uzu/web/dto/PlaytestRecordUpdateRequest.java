@@ -2,12 +2,24 @@ package com.example.uzu.web.dto;
 
 import com.example.uzu.domain.PlaytestPlatform;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 
 /**
  * テストプレイ記録更新リクエストを表すDTOです。
  */
 public class PlaytestRecordUpdateRequest {
+
+    /**
+     * 実施バージョンメモの最大文字数
+     */
+    private static final int VERSION_NOTE_MAX_LENGTH = 200;
+
+    /**
+     * アンケートURLの最大文字数
+     */
+    private static final int QUESTIONNAIRE_URL_MAX_LENGTH = 1000;
 
     /**
      * 実施日
@@ -22,11 +34,13 @@ public class PlaytestRecordUpdateRequest {
     /**
      * 参加者数
      */
+    @Positive
     private Integer participantCount;
 
     /**
      * 実施したバージョンのメモ
      */
+    @Size(max = VERSION_NOTE_MAX_LENGTH)
     private String versionNote;
 
     /**
@@ -37,6 +51,7 @@ public class PlaytestRecordUpdateRequest {
     /**
      * アンケートURL
      */
+    @Size(max = QUESTIONNAIRE_URL_MAX_LENGTH)
     private String questionnaireUrl;
 
     /**

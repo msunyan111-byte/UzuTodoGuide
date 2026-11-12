@@ -99,12 +99,12 @@ class ProjectApiE2ETest {
         JsonNode created = MAPPER.readTree(createdResponse.text());
         String projectId = created.get("id").asText();
         assertThat(created.get("stage").asText()).isEqualTo("PLANNING");
-        assertThat(created.get("checklistTotal").asLong()).isEqualTo(36);
+        assertThat(created.get("checklistTotal").asLong()).isEqualTo(44);
 
         APIResponse checklistResponse = api.get(baseUrl() + "/" + projectId + "/checklist");
         assertThat(checklistResponse.status()).isEqualTo(200);
         JsonNode checklist = MAPPER.readTree(checklistResponse.text());
-        assertThat(checklist).hasSize(36);
+        assertThat(checklist).hasSize(44);
         String itemId = checklist.get(0).get("id").asText();
 
         APIResponse patchedItemResponse = api.patch(

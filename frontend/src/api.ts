@@ -1,6 +1,7 @@
 import type {
   ChecklistItem,
   ChecklistStatus,
+  GuideFaq,
   Project,
   ProjectCreateInput,
 } from "./types";
@@ -48,6 +49,14 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  listGuideFaqs(params: { category?: string; keyword?: string } = {}): Promise<GuideFaq[]> {
+    const query = new URLSearchParams();
+    if (params.category) query.set("category", params.category);
+    if (params.keyword) query.set("keyword", params.keyword);
+    const suffix = query.toString() ? `?${query.toString()}` : "";
+    return request<GuideFaq[]>(`/guide-faqs${suffix}`);
+  },
+
   listProjects(): Promise<Project[]> {
     return request<Project[]>("/projects");
   },

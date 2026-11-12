@@ -46,6 +46,12 @@ class StandardChecklistTest {
             Path.of("src/main/resources/db/migration/V7__add_editor_page_todos.sql");
 
     /**
+     * 制作講座由来のTODOをサンプルへ追加するマイグレーション
+     */
+    private static final Path SAMPLE_DEMO_MIGRATION =
+            Path.of("src/main/resources/db/migration/V9__add_creator_support_todos_to_sample.sql");
+
+    /**
      * 画面名プレフィックスを抽出する正規表現
      */
     private static final Pattern SCREEN_PREFIX = Pattern.compile("^【([^】]+)】");
@@ -66,29 +72,32 @@ class StandardChecklistTest {
     private static final String OBSOLETE_PRODUCTION_ITEM = "【演出】BGM・SE・画面効果を設定する";
 
     /**
-     * 無料作品では有料公開専用項目を除いた39件が作成されることを検証します。
+     * 無料作品では有料公開専用項目を除いた42件が作成されることを検証します。
      */
     @Test
-    @DisplayName("無料作品: 標準チェックリストを39件作成する")
-    void create_freeProject_createsThirtyNineItems() {
+    @DisplayName("無料作品: 標準チェックリストを42件作成する")
+    void create_freeProject_createsFortyTwoItems() {
         final List<ChecklistItem> items = StandardChecklist.create(UUID.randomUUID(), ReleaseType.FREE);
 
-        assertThat(items).hasSize(39);
+        assertThat(items).hasSize(42);
         assertThat(items).extracting(ChecklistItem::getName)
+                .contains("【作品概要】プロット0（事件・犯人・動機・配役）を固める")
+                .contains("【キャラクター】人物の関係性と秘密の見せ場を整理する")
+                .contains("【テキスト】公開前の文章ルールを確認する")
                 .doesNotContain("【規約同意】売上受取人全員の同意を確認する")
                 .doesNotContain("【売上・振込】振込先を登録する");
     }
 
     /**
-     * 有料作品では無料作品の項目に有料公開専用の2件を加えた41件が作成されることを検証します。
+     * 有料作品では無料作品の項目に有料公開専用の2件を加えた44件が作成されることを検証します。
      */
     @Test
-    @DisplayName("有料作品: 有料公開専用2件を含む41件を作成する")
+    @DisplayName("有料作品: 有料公開専用2件を含む44件を作成する")
     void create_paidProject_addsTwoPaidItems() {
         final List<ChecklistItem> freeItems = StandardChecklist.create(UUID.randomUUID(), ReleaseType.FREE);
         final List<ChecklistItem> paidItems = StandardChecklist.create(UUID.randomUUID(), ReleaseType.PAID);
 
-        assertThat(paidItems).hasSize(41);
+        assertThat(paidItems).hasSize(44);
         assertThat(paidItems).extracting(ChecklistItem::getName)
                 .containsAll(freeItems.stream().map(ChecklistItem::getName).collect(Collectors.toList()))
                 .contains("【規約同意】売上受取人全員の同意を確認する")
@@ -156,12 +165,35 @@ class StandardChecklistTest {
         final Set<String> labels = readUzuLabels();
         final String baseSql = Files.readString(SAMPLE_MIGRATION, StandardCharsets.UTF_8);
         final String pageSql = Files.readString(SAMPLE_PAGE_MIGRATION, StandardCharsets.UTF_8);
+        final String demoSupportSql = Files.readString(SAMPLE_DEMO_MIGRATION, StandardCharsets.UTF_8);
         final List<String> names = new ArrayList<>(extractSqlItemNames(baseSql));
         names.remove(OBSOLETE_PRODUCTION_ITEM);
         names.addAll(extractInsertedSqlItemNames(pageSql));
+        names.addAll(extractInsertedSqlItemNames(demoSupportSql));
 
-        assertThat(names).hasSize(51).doesNotHaveDuplicates();
+        assertThat(names).hasSize(54).doesNotHaveDuplicates();
         assertThat(names).allSatisfy(name -> assertThat(labels).contains(prefixOf(name)));
+    }
+
+    /**
+     * 制作講座由来のTODO追加マイグレーションが3件の画面名付きTODOと完了条件を持つことを検証します。
+     *
+     * @throws IOException マイグレーションを読み込めない場合
+     */
+    @Test
+    @DisplayName("サンプルシナリオ: 制作講座由来のTODOを3件追加する")
+    void sampleDemoMigration_addsThreeGuidedItems() throws IOException {
+        final String sql = Files.readString(SAMPLE_DEMO_MIGRATION, StandardCharsets.UTF_8);
+        final List<String> names = extractInsertedSqlItemNames(sql);
+        final int insertIndex = sql.indexOf("INSERT INTO checklist_items");
+        final int completionCount = countMatches(SQL_COMPLETION, sql.substring(insertIndex));
+
+        assertThat(names).hasSize(3).doesNotHaveDuplicates();
+        assertThat(names).contains(
+                "【作品概要】プロット0（事件・犯人・動機・配役）を固める",
+                "【キャラクター】人物の関係性と秘密の見せ場を整理する",
+                "【テキスト】公開前の文章ルールを確認する");
+        assertThat(completionCount).isEqualTo(3);
     }
 
     /**
