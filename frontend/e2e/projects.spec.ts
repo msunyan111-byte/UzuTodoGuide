@@ -28,8 +28,8 @@ test.describe("作品一覧画面", () => {
       projects: [paidProject, freeProject, archivedProject],
       checklists: {
         p1: [makeChecklistItem("p1", "作品概要の確認")],
-        p2: [makeChecklistItem("p2", "キャラクターの確認")],
-        p3: [makeChecklistItem("p3", "リリース情報の確認")],
+        p2: [makeChecklistItem("p2", "キャラクターの確認", "NOT_STARTED", { sectionKey: "CHARACTERS" })],
+        p3: [makeChecklistItem("p3", "リリース情報の確認", "NOT_STARTED", { sectionKey: "RELEASE" })],
       },
     });
 

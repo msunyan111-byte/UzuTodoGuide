@@ -5,6 +5,7 @@ import com.example.uzu.domain.GuideArticle;
 import com.example.uzu.domain.GuideFaq;
 import com.example.uzu.domain.PlaytestRecord;
 import com.example.uzu.domain.Project;
+import com.example.uzu.domain.ProjectSectionState;
 import com.example.uzu.domain.ReviewIssue;
 import com.example.uzu.domain.ReviewRecord;
 import com.example.uzu.repository.ChecklistItemRepository;
@@ -12,6 +13,7 @@ import com.example.uzu.repository.GuideArticleRepository;
 import com.example.uzu.repository.GuideFaqRepository;
 import com.example.uzu.repository.PlaytestRecordRepository;
 import com.example.uzu.repository.ProjectRepository;
+import com.example.uzu.repository.ProjectSectionStateRepository;
 import com.example.uzu.repository.ReviewIssueRepository;
 import com.example.uzu.repository.ReviewRecordRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +41,11 @@ public class BackupService {
      * バックアップ内のチェックリスト一覧キー
      */
     private static final String CHECKLIST_ITEMS = "checklistItems";
+
+    /**
+     * バックアップ内のセクション状態一覧キー
+     */
+    private static final String PROJECT_SECTION_STATES = "projectSectionStates";
 
     /**
      * バックアップ内のテストプレイ記録一覧キー
@@ -76,6 +83,11 @@ public class BackupService {
     private final ChecklistItemRepository checklistItemRepository;
 
     /**
+     * セクション状態リポジトリ
+     */
+    private final ProjectSectionStateRepository projectSectionStateRepository;
+
+    /**
      * テストプレイ記録リポジトリ
      */
     private final PlaytestRecordRepository playtestRecordRepository;
@@ -110,6 +122,7 @@ public class BackupService {
      *
      * @param projectRepository 作品リポジトリ
      * @param checklistItemRepository チェックリストリポジトリ
+     * @param projectSectionStateRepository セクション状態リポジトリ
      * @param playtestRecordRepository テストプレイ記録リポジトリ
      * @param reviewRecordRepository 審査記録リポジトリ
      * @param reviewIssueRepository 審査指摘事項リポジトリ
@@ -119,6 +132,7 @@ public class BackupService {
      */
     public BackupService(final ProjectRepository projectRepository,
                          final ChecklistItemRepository checklistItemRepository,
+                         final ProjectSectionStateRepository projectSectionStateRepository,
                          final PlaytestRecordRepository playtestRecordRepository,
                          final ReviewRecordRepository reviewRecordRepository,
                          final ReviewIssueRepository reviewIssueRepository,
@@ -127,6 +141,7 @@ public class BackupService {
                          final ObjectMapper objectMapper) {
         this.projectRepository = projectRepository;
         this.checklistItemRepository = checklistItemRepository;
+        this.projectSectionStateRepository = projectSectionStateRepository;
         this.playtestRecordRepository = playtestRecordRepository;
         this.reviewRecordRepository = reviewRecordRepository;
         this.reviewIssueRepository = reviewIssueRepository;
@@ -145,6 +160,7 @@ public class BackupService {
         final Map<String, Object> payload = new LinkedHashMap<>();
         payload.put(PROJECTS, projectRepository.findAll());
         payload.put(CHECKLIST_ITEMS, checklistItemRepository.findAll());
+        payload.put(PROJECT_SECTION_STATES, projectSectionStateRepository.findAll());
         payload.put(PLAYTEST_RECORDS, playtestRecordRepository.findAll());
         payload.put(REVIEW_RECORDS, reviewRecordRepository.findAll());
         payload.put(REVIEW_ISSUES, reviewIssueRepository.findAll());
@@ -167,6 +183,8 @@ public class BackupService {
 
         restoreList(payload, PROJECTS, Project.class, projectRepository::saveAll);
         restoreList(payload, CHECKLIST_ITEMS, ChecklistItem.class, checklistItemRepository::saveAll);
+        restoreList(payload, PROJECT_SECTION_STATES, ProjectSectionState.class,
+                projectSectionStateRepository::saveAll);
         restoreList(payload, PLAYTEST_RECORDS, PlaytestRecord.class, playtestRecordRepository::saveAll);
         restoreList(payload, REVIEW_RECORDS, ReviewRecord.class, reviewRecordRepository::saveAll);
         restoreList(payload, REVIEW_ISSUES, ReviewIssue.class, reviewIssueRepository::saveAll);

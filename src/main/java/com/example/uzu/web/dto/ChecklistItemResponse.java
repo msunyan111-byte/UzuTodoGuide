@@ -24,6 +24,11 @@ public class ChecklistItemResponse {
     private final UUID projectId;
 
     /**
+     * 画面セクションのキー
+     */
+    private final String sectionKey;
+
+    /**
      * 項目名
      */
     private final String name;
@@ -68,6 +73,7 @@ public class ChecklistItemResponse {
      *
      * @param id チェックリスト項目ID
      * @param projectId 作品ID
+     * @param sectionKey 画面セクションのキー
      * @param name 項目名
      * @param description 項目の説明
      * @param status 対応状態
@@ -77,12 +83,14 @@ public class ChecklistItemResponse {
      * @param createdAt 作成日時
      * @param updatedAt 更新日時
      */
-    public ChecklistItemResponse(final UUID id, final UUID projectId, final String name,
-                                 final String description, final ChecklistStatus status, final String memo,
+    public ChecklistItemResponse(final UUID id, final UUID projectId, final String sectionKey,
+                                 final String name, final String description,
+                                 final ChecklistStatus status, final String memo,
                                  final LocalDate dueDate, final int displayOrder,
                                  final OffsetDateTime createdAt, final OffsetDateTime updatedAt) {
         this.id = id;
         this.projectId = projectId;
+        this.sectionKey = sectionKey;
         this.name = name;
         this.description = description;
         this.status = status;
@@ -103,6 +111,7 @@ public class ChecklistItemResponse {
         return new ChecklistItemResponse(
                 item.getId(),
                 item.getProjectId(),
+                item.getSectionKey(),
                 item.getName(),
                 item.getDescription(),
                 item.getStatus(),
@@ -129,6 +138,15 @@ public class ChecklistItemResponse {
      */
     public UUID getProjectId() {
         return projectId;
+    }
+
+    /**
+     * 画面セクションのキーを取得します。
+     *
+     * @return 画面セクションのキー
+     */
+    public String getSectionKey() {
+        return sectionKey;
     }
 
     /**

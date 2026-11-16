@@ -140,6 +140,7 @@ export function useWorkspace(projectId: string, activeKey: string) {
       name,
       description: description || undefined,
       displayOrder: items.length + 1,
+      sectionKey: activeKey,
     };
     if (demo) {
       const now = new Date().toISOString();
@@ -148,6 +149,7 @@ export function useWorkspace(projectId: string, activeKey: string) {
         {
           id: crypto.randomUUID(),
           projectId,
+          sectionKey: activeKey,
           name: input.name,
           description: input.description ?? null,
           status: "NOT_STARTED",

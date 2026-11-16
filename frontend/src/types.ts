@@ -37,6 +37,7 @@ export interface Project {
 export interface ChecklistItem {
   id: string;
   projectId: string;
+  sectionKey: string;
   name: string;
   description: string | null;
   status: ChecklistStatus;
@@ -45,6 +46,21 @@ export interface ChecklistItem {
   displayOrder: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProjectSectionState {
+  id: string;
+  projectId: string;
+  sectionKey: string;
+  memo: string | null;
+  verifiedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectSectionStateInput {
+  memo: string | null;
+  verifiedAt: string | null;
 }
 
 export interface ProjectCreateInput {

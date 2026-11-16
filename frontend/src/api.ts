@@ -4,6 +4,8 @@ import type {
   GuideFaq,
   Project,
   ProjectCreateInput,
+  ProjectSectionState,
+  ProjectSectionStateInput,
 } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
@@ -85,7 +87,7 @@ export const api = {
 
   addChecklistItem(
     projectId: string,
-    input: { name: string; description?: string; displayOrder?: number },
+    input: { name: string; description?: string; displayOrder?: number; sectionKey?: string },
   ): Promise<ChecklistItem> {
     return request<ChecklistItem>(`/projects/${projectId}/checklist`, {
       method: "POST",
@@ -102,6 +104,26 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(input),
     });
+  },
+
+  getProjectSection(projectId: string, sectionKey: string): Promise<ProjectSectionState> {
+    return request<ProjectSectionState>(
+      `/projects/${projectId}/sections/${encodeURIComponent(sectionKey)}`,
+    );
+  },
+
+  saveProjectSection(
+    projectId: string,
+    sectionKey: string,
+    input: ProjectSectionStateInput,
+  ): Promise<ProjectSectionState> {
+    return request<ProjectSectionState>(
+      `/projects/${projectId}/sections/${encodeURIComponent(sectionKey)}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      },
+    );
   },
 
   async downloadBackup(): Promise<unknown> {

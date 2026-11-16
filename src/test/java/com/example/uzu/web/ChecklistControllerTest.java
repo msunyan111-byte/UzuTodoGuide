@@ -174,6 +174,6 @@ class ChecklistControllerTest {
     private ChecklistItemResponse item(UUID itemId, UUID projectId, String name, int order, ChecklistStatus status) {
         OffsetDateTime now = OffsetDateTime.parse("2026-11-03T13:00:00+09:00");
         return new ChecklistItemResponse(
-                itemId, projectId, name, null, status, null, null, order, now, now);
+                itemId, projectId, "SUMMARY", name, null, status, null, null, order, now, now);
     }
 }

@@ -22,6 +22,12 @@ public class ChecklistItem extends AuditedEntity {
     private UUID projectId;
 
     /**
+     * 項目が属する画面セクションのキー
+     */
+    @Column(name = "section_key", nullable = false, length = 50)
+    private String sectionKey;
+
+    /**
      * 項目名
      */
     @Column(nullable = false, length = 200)
@@ -69,12 +75,15 @@ public class ChecklistItem extends AuditedEntity {
      *
      * @param id チェックリスト項目ID
      * @param projectId 作品ID
+     * @param sectionKey 画面セクションのキー
      * @param name 項目名
      * @param displayOrder 表示順
      */
-    public ChecklistItem(final UUID id, final UUID projectId, final String name, final int displayOrder) {
+    public ChecklistItem(final UUID id, final UUID projectId, final String sectionKey,
+                         final String name, final int displayOrder) {
         super(id);
         this.projectId = projectId;
+        this.sectionKey = sectionKey;
         this.name = name;
         this.displayOrder = displayOrder;
         this.status = ChecklistStatus.NOT_STARTED;
@@ -87,6 +96,24 @@ public class ChecklistItem extends AuditedEntity {
      */
     public UUID getProjectId() {
         return projectId;
+    }
+
+    /**
+     * 画面セクションのキーを取得します。
+     *
+     * @return 画面セクションのキー
+     */
+    public String getSectionKey() {
+        return sectionKey;
+    }
+
+    /**
+     * 画面セクションのキーを設定します。
+     *
+     * @param sectionKey 画面セクションのキー
+     */
+    public void setSectionKey(final String sectionKey) {
+        this.sectionKey = sectionKey;
     }
 
     /**

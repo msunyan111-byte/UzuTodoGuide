@@ -106,6 +106,7 @@ export function Workspace() {
             key={`${projectId}:${activeKey}`}
             projectId={projectId}
             sectionKey={activeKey}
+            demo={demo}
           />
 
           <GuidancePanel section={activeSection} />

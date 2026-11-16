@@ -134,8 +134,10 @@ function CompactProject({
         {tab === "memo" && (
           <SectionMemo
             key={`${project.id}:${currentKey}`}
-            storageKey={`uzu:memo:${project.id}:${currentKey}`}
+            projectId={project.id}
+            sectionKey={currentKey}
             label={`${currentSection.label} のメモ`}
+            demo={demo}
           />
         )}
       </main>

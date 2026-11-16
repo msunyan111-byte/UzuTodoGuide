@@ -72,6 +72,7 @@ class ProjectApiIntegrationTest {
         assertThat(checklist).hasSize(42);
         assertThat(checklist.get(0).get("displayOrder").asInt()).isEqualTo(1);
         assertThat(checklist.get(0).get("name").asText()).isEqualTo("【作品登録】作品の基本情報を登録する");
+        assertThat(checklist.get(0).get("sectionKey").asText()).isEqualTo("CREATE");
         assertThat(checklist.get(0).get("status").asText()).isEqualTo("NOT_STARTED");
 
         String itemId = checklist.get(0).get("id").asText();
@@ -83,6 +84,16 @@ class ProjectApiIntegrationTest {
         JsonNode project = get("/api/v1/projects/" + projectId, HttpStatus.OK);
         assertThat(project.get("checklistCompleted").asLong()).isEqualTo(1);
         assertThat(project.get("checklistTotal").asLong()).isEqualTo(42);
+
+        JsonNode savedSection = send("/api/v1/projects/" + projectId + "/sections/SUMMARY",
+                HttpMethod.PATCH, mapOf("memo", "投票結果を確認", "verifiedAt", "2026-11-12T10:00:00+09:00"),
+                HttpStatus.OK);
+        assertThat(savedSection.get("memo").asText()).isEqualTo("投票結果を確認");
+        assertThat(savedSection.get("verifiedAt").asText()).isEqualTo("2026-11-12T10:00:00+09:00");
+
+        JsonNode section = get("/api/v1/projects/" + projectId + "/sections/SUMMARY", HttpStatus.OK);
+        assertThat(section.get("sectionKey").asText()).isEqualTo("SUMMARY");
+        assertThat(section.get("memo").asText()).isEqualTo("投票結果を確認");
 
         JsonNode updated = send("/api/v1/projects/" + projectId, HttpMethod.PATCH,
                 mapOf("stage", "PLAYTEST", "scoringRule", "SOLE_TOP_REQUIRED", "memo", "テストプレイ中"), HttpStatus.OK);
@@ -240,6 +251,9 @@ class ProjectApiIntegrationTest {
 
         JsonNode checklist = get("/api/v1/projects/" + missing + "/checklist", HttpStatus.NOT_FOUND);
         assertThat(checklist.get("error").get("code").asText()).isEqualTo("NOT_FOUND");
+
+        JsonNode section = get("/api/v1/projects/" + missing + "/sections/SUMMARY", HttpStatus.NOT_FOUND);
+        assertThat(section.get("error").get("code").asText()).isEqualTo("NOT_FOUND");
     }
 
     /**

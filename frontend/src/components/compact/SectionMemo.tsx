@@ -1,20 +1,23 @@
-import { useState } from "react";
-import { useToast } from "../Toast";
-import { readStorage, writeStorage } from "../../utils";
+import { useSectionMemo } from "../../hooks/useSectionMemo";
 
 interface SectionMemoProps {
-  storageKey: string;
+  projectId: string;
+  sectionKey: string;
   label: string;
+  demo: boolean;
 }
 
-export function SectionMemo({ storageKey, label }: SectionMemoProps) {
-  const toast = useToast();
-  const [memo, setMemo] = useState(() => readStorage(storageKey, ""));
-
-  const saveMemo = () => {
-    writeStorage(storageKey, memo);
-    toast.show("メモを保存しました。", "success");
-  };
+/**
+ * コンパクトモードでセクションのメモを編集するパネルです。
+ *
+ * @param props 作品ID、セクションキー、表示ラベル、デモ表示かどうか
+ */
+export function SectionMemo({ projectId, sectionKey, label, demo }: SectionMemoProps) {
+  const { memo, loading, saving, setMemo, saveMemo } = useSectionMemo(
+    projectId,
+    sectionKey,
+    demo,
+  );
 
   return (
     <div className="compact-memo">
@@ -26,10 +29,17 @@ export function SectionMemo({ storageKey, label }: SectionMemoProps) {
         onBlur={saveMemo}
         placeholder="気づきを短く残す"
         rows={8}
+        aria-label={`${label}のメモ`}
+        disabled={loading}
       />
       <div className="compact-memo-footer">
-        <span>{memo.length}/2000</span>
-        <button type="button" className="button button-ghost button-small" onClick={saveMemo}>
+        <span>{saving ? "保存中..." : loading ? "読み込み中..." : `${memo.length}/2000`}</span>
+        <button
+          type="button"
+          className="button button-ghost button-small"
+          onClick={saveMemo}
+          disabled={saving || loading}
+        >
           保存
         </button>
       </div>

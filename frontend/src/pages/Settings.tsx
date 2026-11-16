@@ -98,7 +98,7 @@ export function Settings() {
           <p className="eyebrow">設定・バックアップ</p>
           <h1>データと表示の設定</h1>
           <p className="page-subtitle">
-            作品データはAPI、セクションの短いメモはブラウザに保存されます。
+            作品データとセクションメモはAPI、デモ中のメモはブラウザに保存されます。
           </p>
         </div>
       </div>
@@ -111,7 +111,7 @@ export function Settings() {
           <div className="settings-heading">
             <div>
               <h2>JSONバックアップ</h2>
-              <p>作品、チェックリスト、テストプレイ、審査、ガイド記事をまとめて保存します。</p>
+              <p>作品、チェックリスト、セクションメモ、テストプレイ、審査、ガイド記事をまとめて保存します。</p>
             </div>
             <span className="settings-meta">
               最終: {lastBackup ? formatDate(lastBackup) : "未実施"}
@@ -173,12 +173,12 @@ export function Settings() {
         <div className="settings-body">
           <div className="settings-heading">
             <div>
-              <h2>ローカルメモ</h2>
-              <p>セクションのメモと最終確認日は、このブラウザにだけ保存されています。</p>
+              <h2>デモ用ローカルメモ</h2>
+              <p>API未接続のデモ中に保存したメモと最終確認日が、このブラウザに残っています。</p>
             </div>
           </div>
           <button className="button button-ghost" type="button" onClick={clearLocalNotes}>
-            ローカルメモを削除
+            デモ用ローカルメモを削除
           </button>
         </div>
       </section>

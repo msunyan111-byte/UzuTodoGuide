@@ -5,7 +5,7 @@ test.describe("作品ワークスペース画面", () => {
   test("チェック状態の変更・項目メモの保存・チェック項目の追加ができる", async ({ page }) => {
     // 未着手と完了の項目を用意し、行ごとの操作と追加操作を確認する。
     const project = makeProject({ id: "p1" });
-    await installApiMock(page, {
+    const state = await installApiMock(page, {
       projects: [project],
       checklists: {
         p1: [
@@ -51,6 +51,23 @@ test.describe("作品ワークスペース画面", () => {
       await memo.fill("UZU上で確認済み");
       await memo.press("Tab");
       await expect(page.getByText("メモを保存しました。")).toBeVisible();
+    });
+
+    await test.step("セクションメモと最終確認日時をサーバーへ保存し、再読み込み後も復元する", async () => {
+      const sectionMemo = page.getByLabel("セクションメモ");
+      await sectionMemo.fill("同票時の表示をUZU上で確認する");
+      await page.getByRole("button", { name: "UZU上で確認した" }).click();
+
+      await expect
+        .poll(() => state.sections["p1:SUMMARY"]?.memo)
+        .toBe("同票時の表示をUZU上で確認する");
+      await expect.poll(() => state.sections["p1:SUMMARY"]?.verifiedAt).not.toBeNull();
+
+      await page.reload();
+      await expect(page.getByLabel("セクションメモ")).toHaveValue(
+        "同票時の表示をUZU上で確認する",
+      );
+      await expect(page.getByText("最終確認: 未記録")).toHaveCount(0);
     });
 
     await test.step("セクションにチェック項目を追加する", async () => {

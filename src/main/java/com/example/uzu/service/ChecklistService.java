@@ -23,6 +23,11 @@ import java.util.stream.Collectors;
 public class ChecklistService {
 
     /**
+     * セクションを特定できない項目のキー
+     */
+    private static final String DEFAULT_SECTION_KEY = "OTHER";
+
+    /**
      * チェックリストリポジトリ
      */
     private final ChecklistItemRepository checklistItemRepository;
@@ -74,7 +79,11 @@ public class ChecklistService {
         final int displayOrder = request.getDisplayOrder() != null
                 ? request.getDisplayOrder()
                 : Math.toIntExact(checklistItemRepository.countByProjectId(projectId)) + 1;
-        final ChecklistItem item = new ChecklistItem(UUID.randomUUID(), projectId, name, displayOrder);
+        final String sectionKey = request.getSectionKey() == null
+                ? DEFAULT_SECTION_KEY
+                : request.getSectionKey();
+        final ChecklistItem item = new ChecklistItem(
+                UUID.randomUUID(), projectId, sectionKey, name, displayOrder);
         item.setDescription(request.getDescription());
         item.setMemo(request.getMemo());
         item.setDueDate(request.getDueDate());

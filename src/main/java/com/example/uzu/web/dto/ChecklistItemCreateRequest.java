@@ -3,6 +3,7 @@ package com.example.uzu.web.dto;
 import com.example.uzu.domain.ChecklistStatus;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
@@ -11,6 +12,13 @@ import java.time.LocalDate;
  * チェックリスト項目作成リクエストを表すDTOです。
  */
 public class ChecklistItemCreateRequest {
+
+    /**
+     * 画面セクションのキー
+     */
+    @Size(max = 50)
+    @Pattern(regexp = "[A-Z0-9_]+")
+    private String sectionKey;
 
     /**
      * 項目名
@@ -46,6 +54,24 @@ public class ChecklistItemCreateRequest {
      */
     @Positive
     private Integer displayOrder;
+
+    /**
+     * 画面セクションのキーを取得します。
+     *
+     * @return 画面セクションのキー
+     */
+    public String getSectionKey() {
+        return sectionKey;
+    }
+
+    /**
+     * 画面セクションのキーを設定します。
+     *
+     * @param sectionKey 画面セクションのキー
+     */
+    public void setSectionKey(final String sectionKey) {
+        this.sectionKey = sectionKey;
+    }
 
     /**
      * 項目名を取得します。

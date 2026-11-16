@@ -1,4 +1,3 @@
-import { SECTIONS } from "./data/uzu";
 import type { ChecklistItem, Project, SectionDefinition } from "./types";
 
 /** UZU StudioのトップURL */
@@ -40,49 +39,8 @@ export function nextChecklistItem(items: ChecklistItem[]): ChecklistItem | undef
     .sort((a, b) => a.displayOrder - b.displayOrder)[0];
 }
 
-const SECTION_RULES: Array<{ key: string; pattern: RegExp }> = [
-  { key: "SUMMARY", pattern: /作品概要|あらすじ|キービジュアル|タイトル|注意事項|作者コメント/ },
-  { key: "NPC", pattern: /NPC|ノンプレイヤー/ },
-  { key: "CHARACTERS", pattern: /キャラクター|ミッション|PC|種別/ },
-  { key: "PHASES", pattern: /フェーズ|投票|密談|ラウンド/ },
-  { key: "FLOW", pattern: /進行|分岐|エンディング/ },
-  { key: "TEXTS", pattern: /テキスト|誤字|表記|句読点/ },
-  { key: "CLUES", pattern: /手がかり|証拠|カード/ },
-  { key: "DECK", pattern: /山札|デッキ/ },
-  { key: "ROOMS", pattern: /ルーム|部屋|移動/ },
-  { key: "TOKENS", pattern: /トークン|コマ/ },
-  { key: "TEXT_FIELDS", pattern: /自由記述|入力欄/ },
-  { key: "BGM", pattern: /BGM|音楽|楽曲/ },
-  { key: "SE", pattern: /SE|効果音|ナレーション/ },
-  { key: "MOVIE", pattern: /ムービー|動画再生/ },
-  { key: "BACKGROUND", pattern: /背景画像|背景の|条件付き背景/ },
-  { key: "COLOR_THEME", pattern: /カラーテーマ|色テーマ|配色テーマ/ },
-  { key: "CONDITIONS", pattern: /条件|AND|OR/ },
-  { key: "SCREEN_DESIGN", pattern: /画面デザイン|レイアウト|配色/ },
-  { key: "DEMO", pattern: /動作確認|通し|デモ/ },
-  { key: "VERSION", pattern: /バージョン|最新版/ },
-  { key: "PLAYTEST", pattern: /テストプレイ|アンケート|フィードバック/ },
-  { key: "REVIEW", pattern: /審査|提出|指摘|公開準備/ },
-  { key: "LOCALIZATION", pattern: /外国語|翻訳|ローカライズ/ },
-  { key: "REFLECTION", pattern: /感想戦|真相|解説|推理/ },
-  { key: "RELEASE", pattern: /リリース|公開日|料金|セール/ },
-  { key: "MARKETING", pattern: /マーケティング|告知|タグ/ },
-  { key: "ASSETS", pattern: /素材|画像|音声|動画|権利/ },
-  { key: "MEMBERS", pattern: /メンバー|共同制作|担当/ },
-  { key: "REPORT", pattern: /レポート|売上|分析/ },
-];
-
-const SECTION_KEY_BY_LABEL = new Map(SECTIONS.map((section) => [section.label, section.key]));
-
 export function sectionKeyForItem(item: ChecklistItem): string {
-  const prefix = item.name.match(/^【([^】]+)】/);
-  if (prefix) {
-    const key = SECTION_KEY_BY_LABEL.get(prefix[1]);
-    if (key) return key;
-  }
-  const text = `${item.name} ${item.description ?? ""}`;
-  const matched = SECTION_RULES.find((rule) => rule.pattern.test(text));
-  return matched?.key ?? "OTHER";
+  return item.sectionKey || "OTHER";
 }
 
 export function groupItemsBySection(items: ChecklistItem[]): Record<string, ChecklistItem[]> {

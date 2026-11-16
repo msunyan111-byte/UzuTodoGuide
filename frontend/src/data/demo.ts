@@ -1,6 +1,14 @@
 import type { ChecklistItem, Project } from "../types";
+import { SECTIONS } from "./uzu";
 
 export const DEMO_PROJECT_ID = "7f1c2b3a-4d5e-4f6a-8b9c-0d1e2f3a4b5c";
+
+const SECTION_KEY_BY_LABEL = new Map(SECTIONS.map((section) => [section.label, section.key]));
+
+function sectionKeyForName(name: string): string {
+  const label = name.match(/^【([^】]+)】/)?.[1];
+  return label ? SECTION_KEY_BY_LABEL.get(label) ?? "OTHER" : "OTHER";
+}
 
 export const DEMO_PROJECT: Project = {
   id: DEMO_PROJECT_ID,
@@ -85,6 +93,7 @@ export const DEMO_CHECKLIST: ChecklistItem[] = definitions.map(([order, name, de
   return {
     id: `demo-${String(order).padStart(3, "0")}`,
     projectId: DEMO_PROJECT_ID,
+    sectionKey: sectionKeyForName(name),
     name,
     description,
     status,

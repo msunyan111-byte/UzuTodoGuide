@@ -5,6 +5,7 @@ import com.example.uzu.domain.ReleaseType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -14,6 +15,43 @@ import java.util.UUID;
  * どの画面で何を行うか分かるようにしています。説明には操作手順と完了条件を含めます。</p>
  */
 final class StandardChecklist {
+
+    /**
+     * 項目名の画面名からセクションキーへの対応
+     */
+    private static final Map<String, String> SECTION_KEY_BY_LABEL = Map.ofEntries(
+            Map.entry("作品登録", "CREATE"),
+            Map.entry("作品概要", "SUMMARY"),
+            Map.entry("ジャンル", "GENRE"),
+            Map.entry("キャラクター", "CHARACTERS"),
+            Map.entry("NPC", "NPC"),
+            Map.entry("フェーズ", "PHASES"),
+            Map.entry("フェーズ進行", "FLOW"),
+            Map.entry("テキスト", "TEXTS"),
+            Map.entry("手がかり", "CLUES"),
+            Map.entry("山札", "DECK"),
+            Map.entry("ルーム", "ROOMS"),
+            Map.entry("トークン", "TOKENS"),
+            Map.entry("自由記述", "TEXT_FIELDS"),
+            Map.entry("トリガー", "TRIGGERS"),
+            Map.entry("アクション", "ACTIONS"),
+            Map.entry("BGM", "BGM"),
+            Map.entry("SE", "SE"),
+            Map.entry("ムービー", "MOVIE"),
+            Map.entry("背景画像", "BACKGROUND"),
+            Map.entry("カラーテーマ", "COLOR_THEME"),
+            Map.entry("条件", "CONDITIONS"),
+            Map.entry("画面デザイン", "SCREEN_DESIGN"),
+            Map.entry("感想戦", "REFLECTION"),
+            Map.entry("素材", "ASSETS"),
+            Map.entry("動作確認", "DEMO"),
+            Map.entry("バージョン", "VERSION"),
+            Map.entry("テストプレイ", "PLAYTEST"),
+            Map.entry("審査・公開", "REVIEW"),
+            Map.entry("リリース管理", "RELEASE"),
+            Map.entry("規約同意", "TERMS"),
+            Map.entry("売上・振込", "REVENUE"),
+            Map.entry("マーケティング", "MARKETING"));
 
     /**
      * 標準チェックリストの定義一覧
@@ -227,12 +265,29 @@ final class StandardChecklist {
                 continue;
             }
             final ChecklistItem item = new ChecklistItem(
-                    UUID.randomUUID(), projectId, definition.name, order);
+                    UUID.randomUUID(), projectId, sectionKeyOf(definition.name), definition.name, order);
             item.setDescription(definition.description);
             items.add(item);
             order++;
         }
         return items;
+    }
+
+    /**
+     * 項目名の先頭にある画面名からセクションキーを取得します。
+     *
+     * @param name 項目名
+     * @return セクションキー。対応する画面名がない場合はOTHER
+     */
+    private static String sectionKeyOf(final String name) {
+        if (!name.startsWith("【")) {
+            return "OTHER";
+        }
+        final int end = name.indexOf('】');
+        if (end < 0) {
+            return "OTHER";
+        }
+        return SECTION_KEY_BY_LABEL.getOrDefault(name.substring(1, end), "OTHER");
     }
 
     /**

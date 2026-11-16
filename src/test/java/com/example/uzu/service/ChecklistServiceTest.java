@@ -72,11 +72,13 @@ class ChecklistServiceTest {
 
         ChecklistItemCreateRequest request = new ChecklistItemCreateRequest();
         request.setName("追加項目");
+        request.setSectionKey("CHARACTERS");
         request.setDueDate(LocalDate.of(2026, 12, 1));
 
         ChecklistItemResponse response = checklistService.add(projectId, request);
 
         assertThat(response.getName()).isEqualTo("追加項目");
+        assertThat(response.getSectionKey()).isEqualTo("CHARACTERS");
         assertThat(response.getDisplayOrder()).isEqualTo(14);
         assertThat(response.getStatus()).isEqualTo(ChecklistStatus.NOT_STARTED);
         assertThat(response.getDueDate()).isEqualTo(LocalDate.of(2026, 12, 1));
@@ -131,7 +133,7 @@ class ChecklistServiceTest {
     void update_appliesProvidedFieldsAndTrimsName() {
         UUID projectId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
-        ChecklistItem item = new ChecklistItem(itemId, projectId, "old", 1);
+        ChecklistItem item = new ChecklistItem(itemId, projectId, "SUMMARY", "old", 1);
         given(checklistItemRepository.findByIdAndProjectId(itemId, projectId)).willReturn(Optional.of(item));
         given(checklistItemRepository.saveAndFlush(item)).willReturn(item);
 
@@ -162,7 +164,7 @@ class ChecklistServiceTest {
     void update_ignoresUnspecifiedFields() {
         UUID projectId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
-        ChecklistItem item = new ChecklistItem(itemId, projectId, "old", 1);
+        ChecklistItem item = new ChecklistItem(itemId, projectId, "SUMMARY", "old", 1);
         item.setDescription("説明");
         item.setStatus(ChecklistStatus.DONE);
         item.setMemo("メモ");
@@ -190,7 +192,7 @@ class ChecklistServiceTest {
     void update_rejectsBlankName() {
         UUID projectId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
-        ChecklistItem item = new ChecklistItem(itemId, projectId, "old", 1);
+        ChecklistItem item = new ChecklistItem(itemId, projectId, "SUMMARY", "old", 1);
         given(checklistItemRepository.findByIdAndProjectId(itemId, projectId)).willReturn(Optional.of(item));
 
         ChecklistItemUpdateRequest request = new ChecklistItemUpdateRequest();
@@ -208,7 +210,7 @@ class ChecklistServiceTest {
     void delete_removesItem() {
         UUID projectId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
-        ChecklistItem item = new ChecklistItem(itemId, projectId, "item", 1);
+        ChecklistItem item = new ChecklistItem(itemId, projectId, "SUMMARY", "item", 1);
         given(checklistItemRepository.findByIdAndProjectId(itemId, projectId)).willReturn(Optional.of(item));
 
         checklistService.delete(projectId, itemId);

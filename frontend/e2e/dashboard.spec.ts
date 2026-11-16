@@ -25,7 +25,7 @@ test.describe("ダッシュボード画面", () => {
           makeChecklistItem("p1", "作品概要の確認"),
           makeChecklistItem("p1", "キービジュアルの確認", "DONE"),
         ],
-        p2: [makeChecklistItem("p2", "キャラクターの確認")],
+        p2: [makeChecklistItem("p2", "キャラクターの確認", "NOT_STARTED", { sectionKey: "CHARACTERS" })],
       },
     });
 

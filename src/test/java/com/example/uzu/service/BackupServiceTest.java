@@ -7,6 +7,7 @@ import com.example.uzu.repository.GuideArticleRepository;
 import com.example.uzu.repository.GuideFaqRepository;
 import com.example.uzu.repository.PlaytestRecordRepository;
 import com.example.uzu.repository.ProjectRepository;
+import com.example.uzu.repository.ProjectSectionStateRepository;
 import com.example.uzu.repository.ReviewIssueRepository;
 import com.example.uzu.repository.ReviewRecordRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +45,10 @@ class BackupServiceTest {
     /** チェックリストリポジトリのモック。 */
     @Mock
     private ChecklistItemRepository checklistItemRepository;
+
+    /** セクション状態リポジトリのモック。 */
+    @Mock
+    private ProjectSectionStateRepository projectSectionStateRepository;
 
     /** テストプレイ記録リポジトリのモック。 */
     @Mock
@@ -88,7 +93,7 @@ class BackupServiceTest {
         assertThat(nullResult).containsEntry("projects", List.of(project));
         assertThat(emptyResult).containsEntry("projects", List.of(project));
         assertThat(emptyResult).containsKeys(
-                "projects", "checklistItems", "playtestRecords", "reviewRecords",
+                "projects", "checklistItems", "projectSectionStates", "playtestRecords", "reviewRecords",
                 "reviewIssues", "guideArticles", "guideFaqs");
     }
 

@@ -80,7 +80,7 @@ cd ..
 
 - 画面は Hash Router のため、静的配信でもリロード時に 404 になりません。
 - API に接続できない場合は、デモ作品「吸血鬼の館のマーダーミステリー」を表示します。デモ中の変更はブラウザ内だけに保持されます。
-- セクションの短いメモと最終確認日は `localStorage` に保存します。作品・チェックリスト・バックアップは API / DB に保存します。
+- セクションの短いメモと最終確認日は API / DB に保存します。デモ中のみ `localStorage` に保存します。作品・チェックリスト・バックアップも API / DB に保存します。
 - 実装済み画面: ダッシュボード、作品一覧、作品新規作成、作品ワークスペース（セクション別チェック・次アクション・制作サポート・公開準備・作品編集）、UZU機能ガイド（44セクション検索）、設定・バックアップ、コンパクトモード。
 
 ## テスト
@@ -151,12 +151,13 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 ├── src/main/java/com/example/uzu/
 │   ├── UzuTodoApplication.java          # 起動クラス
 │   ├── ServletInitializer.java          # 外部 Tomcat 用
-│   ├── domain/                          # Project / Checklist / Guide / Playtest / Review / ScoringRule
+│   ├── domain/                          # Project / Checklist / ProjectSectionState / Guide / Playtest / Review / ScoringRule
 │   ├── repository/                      # Spring Data JPA
 │   ├── service/
 │   │   ├── ProjectService.java
 │   │   ├── ChecklistService.java
 │   │   ├── StandardChecklist.java       # 公式ガイド準拠の標準項目
+│   │   ├── ProjectSectionService.java   # セクションメモ・最終確認日
 │   │   ├── GuideService.java            # 公式ガイド要約の初期投入
 │   │   ├── PlaytestService.java
 │   │   ├── ReviewService.java
@@ -166,6 +167,7 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 │   └── web/
 │       ├── ProjectController.java
 │       ├── ChecklistController.java
+│       ├── ProjectSectionController.java
 │       ├── GuideController.java
 │       ├── PlaytestController.java
 │       ├── ReviewController.java
@@ -183,14 +185,17 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 │       ├── V6__restructure_vampire_mansion_todos.sql # TODOの画面名・完了条件整理
 │       ├── V7__add_editor_page_todos.sql           # NPC・演出配下TODOの追加
 │       ├── V8__add_guide_faqs.sql                  # 困ったときのQ&A追加
-│       └── V9__add_creator_support_todos_to_sample.sql # 制作講座由来TODOの追加
+│       ├── V9__add_creator_support_todos_to_sample.sql # 制作講座由来TODOの追加
+│       └── V10__add_section_state_and_checklist_section.sql # セクション状態と項目の画面キー
 └── src/test/java/com/example/uzu/
     ├── service/ProjectServiceTest.java
     ├── service/ChecklistServiceTest.java
+    ├── service/ProjectSectionServiceTest.java
     ├── service/StandardChecklistTest.java
     ├── service/ServiceValidationTest.java
     ├── web/ProjectControllerTest.java
     ├── web/ChecklistControllerTest.java
+    ├── web/ProjectSectionControllerTest.java
     ├── ProjectApiIntegrationTest.java        # Testcontainers
     ├── SupportingApiIntegrationTest.java     # Testcontainers（補助API）
     └── e2e/ProjectApiE2ETest.java            # Playwright (tag: e2e)
@@ -210,6 +215,7 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 - `V7` でサンプルにNPCと演出配下（BGM・SE・ムービー・背景画像・カラーテーマ）のTODOを追加します。
 - `V8` で公式Q&Aに基づく「困ったときのQ&A」16件を `guide_faqs` に追加します。Q&AはDBで管理し、SQLの追加・更新だけで増やせます。
 - `V9` でサンプルにプロット0・人物関係性・文章ルールのTODOを追加し、料金・セール・審査日数の説明を公式ガイドに合わせます。
+- `V10` でチェックリスト項目に画面セクションキーを追加し、既存項目を項目名から補完します。あわせてセクションごとのメモと最終確認日を保存する `project_section_states` を作成します。
 
 サンプルシナリオはアプリ本体のコードには組み込んでいません。他のシナリオは `POST /api/v1/projects` で通常どおり作成できます。サンプルが不要な場合は作品をアーカイブまたは削除してください。
 
@@ -256,7 +262,16 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 | PATCH | `/api/v1/projects/{projectId}/checklist/{itemId}` | 更新 |
 | DELETE | `/api/v1/projects/{projectId}/checklist/{itemId}` | 削除 (204) |
 
-`status` は `NOT_STARTED` / `IN_PROGRESS` / `DONE` です。
+`status` は `NOT_STARTED` / `IN_PROGRESS` / `DONE` です。各項目は `sectionKey` を持ち、ワークスペースの画面セクション別に集計・表示します。追加時の `sectionKey` は任意で、未指定時は `OTHER` になります。
+
+### セクション状態
+
+| メソッド | パス | 説明 |
+| --- | --- | --- |
+| GET | `/api/v1/projects/{projectId}/sections/{sectionKey}` | セクションメモと最終確認日を取得 |
+| PATCH | `/api/v1/projects/{projectId}/sections/{sectionKey}` | セクションメモと最終確認日を保存 |
+
+`sectionKey` は `[A-Z0-9_]+`、最大50文字です。リクエスト項目は `memo`（最大2000文字）と `verifiedAt`（ISO 8601形式、任意）です。レスポンスには `sectionKey`, `memo`, `verifiedAt`, `createdAt`, `updatedAt` が含まれます。
 
 ### ガイド
 
@@ -323,7 +338,7 @@ INSERT INTO guide_faqs (
 
 | メソッド | パス | 説明 |
 | --- | --- | --- |
-| GET | `/api/v1/backup` | 全データを JSON で出力（`guideArticles` / `guideFaqs` を含む） |
+| GET | `/api/v1/backup` | 全データを JSON で出力（`guideArticles` / `guideFaqs` / `projectSectionStates` を含む） |
 | POST | `/api/v1/restore` | JSON から復元 |
 
 ### エラー形式

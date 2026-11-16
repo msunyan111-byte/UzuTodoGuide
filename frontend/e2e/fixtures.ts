@@ -4,6 +4,7 @@ import type {
   ChecklistStatus,
   GuideFaq,
   Project,
+  ProjectSectionState,
   ReleaseType,
   Stage,
 } from "../src/types";
@@ -22,6 +23,7 @@ export interface ApiRequestRecord {
 export interface ApiMockState {
   projects: Project[];
   checklists: Record<string, ChecklistItem[]>;
+  sections: Record<string, ProjectSectionState>;
   guideFaqs: GuideFaq[];
   requests: ApiRequestRecord[];
 }
@@ -30,6 +32,7 @@ export interface ApiMockState {
 export interface ApiMockSeed {
   projects: Project[];
   checklists?: Record<string, ChecklistItem[]>;
+  sections?: Record<string, ProjectSectionState>;
   guideFaqs?: GuideFaq[];
 }
 
@@ -122,6 +125,7 @@ export function makeChecklistItem(
   return {
     id: `check-${nextItemOrder}`,
     projectId,
+    sectionKey: "SUMMARY",
     name,
     description: null,
     status,
@@ -177,6 +181,7 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
   const state: ApiMockState = {
     projects: [...seed.projects],
     checklists: { ...(seed.checklists ?? {}) },
+    sections: { ...(seed.sections ?? {}) },
     guideFaqs: [...(seed.guideFaqs ?? DEFAULT_GUIDE_FAQS)],
     requests: [],
   };
@@ -193,6 +198,7 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
     const archiveMatch = path.match(/^\/projects\/([^/]+)\/archive$/);
     const checklistMatch = path.match(/^\/projects\/([^/]+)\/checklist$/);
     const checklistItemMatch = path.match(/^\/projects\/([^/]+)\/checklist\/([^/]+)$/);
+    const sectionMatch = path.match(/^\/projects\/([^/]+)\/sections\/([^/]+)$/);
     const guideFaqsMatch = path === "/guide-faqs";
 
     if (guideFaqsMatch && method === "GET") {
@@ -270,6 +276,7 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
         name?: string;
         description?: string;
         displayOrder?: number;
+        sectionKey?: string;
       };
       const item = makeChecklistItem(
         projectId,
@@ -278,6 +285,7 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
         {
           description: input.description ?? null,
           displayOrder: input.displayOrder,
+          sectionKey: input.sectionKey ?? "OTHER",
         },
       );
       state.checklists[projectId] = [...(state.checklists[projectId] ?? []), item];
@@ -295,6 +303,40 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
         Object.assign(item, body ?? {}, { updatedAt: new Date().toISOString() });
       }
       return route.fulfill(json(item));
+    }
+
+    if (sectionMatch) {
+      const [, projectId, sectionKey] = sectionMatch;
+      const key = `${projectId}:${sectionKey}`;
+      const existing = state.sections[key];
+      if (method === "GET") {
+        if (!existing) {
+          return route.fulfill(json({ error: { message: "セクションメモが見つかりません。" } }, 404));
+        }
+        return route.fulfill(json(existing));
+      }
+      if (method === "PATCH") {
+        const input = (body ?? {}) as { memo?: string | null; verifiedAt?: string | null };
+        const now = new Date().toISOString();
+        const saved: ProjectSectionState = existing
+          ? {
+              ...existing,
+              memo: input.memo ?? null,
+              verifiedAt: input.verifiedAt ?? null,
+              updatedAt: now,
+            }
+          : {
+              id: `section-${projectId}-${sectionKey}`,
+              projectId,
+              sectionKey,
+              memo: input.memo ?? null,
+              verifiedAt: input.verifiedAt ?? null,
+              createdAt: now,
+              updatedAt: now,
+            };
+        state.sections[key] = saved;
+        return route.fulfill(json(saved));
+      }
     }
 
     return route.fulfill(json({ error: { message: `未定義のAPI: ${method} ${path}` } }, 404));
