@@ -2071,6 +2071,167 @@ h3 {
   gap: 7px;
 }
 
+.playtest-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.playtest-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-soft);
+}
+
+.playtest-summary span {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.playtest-summary strong {
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.playtest-summary small {
+  font-size: 8.5px;
+  color: var(--muted);
+}
+
+.playtest-requirement {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 12px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  color: #8a5a0e;
+  background: var(--amber-soft);
+}
+
+.playtest-requirement.met {
+  color: #137a52;
+  background: var(--green-soft);
+}
+
+.playtest-requirement strong {
+  display: block;
+  font-size: 11px;
+}
+
+.playtest-requirement span {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.playtest-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.playtest-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.playtest-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--purple);
+}
+
+.playtest-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+}
+
+.playtest-record {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.playtest-record:first-child {
+  border-top: 0;
+}
+
+.playtest-record-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.playtest-record-head strong {
+  font-size: 12px;
+}
+
+.playtest-record-badges {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.playtest-record-meta {
+  font-size: 9.5px;
+  color: var(--muted);
+}
+
+.playtest-record-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.playtest-record-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 7px;
+  font-size: 10px;
+}
+
+.playtest-record-text {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.playtest-record-memo {
+  margin-top: 4px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.playtest-loading {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
 .memo-footer {
   display: flex;
   align-items: center;
@@ -3738,6 +3899,18 @@ h3 {
   .support-grid,
   .support-resource-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .playtest-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .playtest-record-head {
+    flex-direction: column;
+  }
+
+  .playtest-record-actions {
+    justify-content: flex-start;
   }
 
   .support-hero {

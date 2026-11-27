@@ -1,4 +1,4 @@
-import type { ChecklistItem, Project } from "../types";
+import type { ChecklistItem, PlaytestRecord, Project } from "../types";
 import { SECTIONS } from "./uzu";
 
 export const DEMO_PROJECT_ID = "7f1c2b3a-4d5e-4f6a-8b9c-0d1e2f3a4b5c";
@@ -27,9 +27,43 @@ export const DEMO_PROJECT: Project = {
   archived: false,
   checklistCompleted: 10,
   checklistTotal: 54,
+  playtestTotal: 2,
+  playtestUzu: 1,
+  playtestQuestionnaire: 1,
   createdAt: "2026-11-01T09:00:00+09:00",
   updatedAt: "2026-11-04T10:30:00+09:00",
 };
+
+export const DEMO_PLAYTESTS: PlaytestRecord[] = [
+  {
+    id: "demo-playtest-001",
+    projectId: DEMO_PROJECT_ID,
+    playedAt: "2026-11-03",
+    platform: "UZU",
+    participantCount: 4,
+    versionNote: "v1.2",
+    questionnaireCollected: true,
+    questionnaireUrl: "https://example.com/playtest-form",
+    findings: "終盤の投票前に、ルーシィの目的を確認する会話が増えると分かりやすい。",
+    memo: "初回の通しテスト。進行は最後まで止まらず。",
+    createdAt: "2026-11-03T21:00:00+09:00",
+    updatedAt: "2026-11-03T21:00:00+09:00",
+  },
+  {
+    id: "demo-playtest-002",
+    projectId: DEMO_PROJECT_ID,
+    playedAt: "2026-11-02",
+    platform: "OTHER",
+    participantCount: 5,
+    versionNote: "v1.1",
+    questionnaireCollected: false,
+    questionnaireUrl: null,
+    findings: "手がかりA-03の公開タイミングが早く、犯人特定が容易になっていた。",
+    memo: "身内で実施。アンケートは口頭のみ。",
+    createdAt: "2026-11-02T22:00:00+09:00",
+    updatedAt: "2026-11-02T22:00:00+09:00",
+  },
+];
 
 const definitions: Array<[number, string, string]> = [
   [1, "【作品登録】作品の基本情報を登録する", "UZU Studio にログインし、「作品登録」を開きます。テンプレート（基本／発展）を選び、ジャンル、タイトル、ふりがなを入力します。タイトルが未定なら「仮」でも構いません。プレイ時間は「作品概要」、公開形態は審査提出時に設定します。完了条件: 作品一覧に作品が表示され、「作品概要」を開ける状態になっている。"],

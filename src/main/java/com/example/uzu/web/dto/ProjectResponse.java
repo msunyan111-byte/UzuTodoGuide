@@ -95,6 +95,21 @@ public class ProjectResponse {
     private final long checklistTotal;
 
     /**
+     * テストプレイ記録の合計回数
+     */
+    private final long playtestTotal;
+
+    /**
+     * UZU上で実施したテストプレイ回数
+     */
+    private final long playtestUzu;
+
+    /**
+     * アンケートを回収済みのテストプレイ件数
+     */
+    private final long playtestQuestionnaire;
+
+    /**
      * 作成日時
      */
     private final OffsetDateTime createdAt;
@@ -123,6 +138,9 @@ public class ProjectResponse {
      * @param archived アーカイブ済みの場合はtrue
      * @param checklistCompleted 完了済みチェックリスト項目数
      * @param checklistTotal チェックリスト項目総数
+     * @param playtestTotal テストプレイ記録の合計回数
+     * @param playtestUzu UZU上で実施したテストプレイ回数
+     * @param playtestQuestionnaire アンケートを回収済みのテストプレイ件数
      * @param createdAt 作成日時
      * @param updatedAt 更新日時
      */
@@ -131,7 +149,8 @@ public class ProjectResponse {
                            final ReleaseType releaseType, final Stage stage, final ScoringRule scoringRule,
                            final String studioWorkId, final String studioUrl, final String publicUrl,
                            final String memo, final boolean archived, final long checklistCompleted,
-                           final long checklistTotal, final OffsetDateTime createdAt,
+                           final long checklistTotal, final long playtestTotal, final long playtestUzu,
+                           final long playtestQuestionnaire, final OffsetDateTime createdAt,
                            final OffsetDateTime updatedAt) {
         this.id = id;
         this.title = title;
@@ -149,6 +168,9 @@ public class ProjectResponse {
         this.archived = archived;
         this.checklistCompleted = checklistCompleted;
         this.checklistTotal = checklistTotal;
+        this.playtestTotal = playtestTotal;
+        this.playtestUzu = playtestUzu;
+        this.playtestQuestionnaire = playtestQuestionnaire;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -159,10 +181,14 @@ public class ProjectResponse {
      * @param project 作品エンティティ
      * @param checklistCompleted 完了済みチェックリスト項目数
      * @param checklistTotal チェックリスト項目総数
+     * @param playtestTotal テストプレイ記録の合計回数
+     * @param playtestUzu UZU上で実施したテストプレイ回数
+     * @param playtestQuestionnaire アンケートを回収済みのテストプレイ件数
      * @return 作品レスポンス
      */
     public static ProjectResponse from(final Project project, final long checklistCompleted,
-                                       final long checklistTotal) {
+                                       final long checklistTotal, final long playtestTotal,
+                                       final long playtestUzu, final long playtestQuestionnaire) {
         return new ProjectResponse(
                 project.getId(),
                 project.getTitle(),
@@ -180,6 +206,9 @@ public class ProjectResponse {
                 project.isArchived(),
                 checklistCompleted,
                 checklistTotal,
+                playtestTotal,
+                playtestUzu,
+                playtestQuestionnaire,
                 TokyoTime.toOffset(project.getCreatedAt()),
                 TokyoTime.toOffset(project.getUpdatedAt()));
     }
@@ -326,6 +355,33 @@ public class ProjectResponse {
      */
     public long getChecklistTotal() {
         return checklistTotal;
+    }
+
+    /**
+     * テストプレイ記録の合計回数を取得します。
+     *
+     * @return テストプレイ記録の合計回数
+     */
+    public long getPlaytestTotal() {
+        return playtestTotal;
+    }
+
+    /**
+     * UZU上で実施したテストプレイ回数を取得します。
+     *
+     * @return UZU上で実施したテストプレイ回数
+     */
+    public long getPlaytestUzu() {
+        return playtestUzu;
+    }
+
+    /**
+     * アンケートを回収済みのテストプレイ件数を取得します。
+     *
+     * @return アンケートを回収済みのテストプレイ件数
+     */
+    public long getPlaytestQuestionnaire() {
+        return playtestQuestionnaire;
     }
 
     /**

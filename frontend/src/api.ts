@@ -2,6 +2,8 @@ import type {
   ChecklistItem,
   ChecklistStatus,
   GuideFaq,
+  PlaytestRecord,
+  PlaytestRecordInput,
   Project,
   ProjectCreateInput,
   ProjectSectionState,
@@ -103,6 +105,34 @@ export const api = {
     return request<ChecklistItem>(`/projects/${projectId}/checklist/${itemId}`, {
       method: "PATCH",
       body: JSON.stringify(input),
+    });
+  },
+
+  listPlaytests(projectId: string): Promise<PlaytestRecord[]> {
+    return request<PlaytestRecord[]>(`/projects/${projectId}/playtests`);
+  },
+
+  addPlaytest(projectId: string, input: PlaytestRecordInput): Promise<PlaytestRecord> {
+    return request<PlaytestRecord>(`/projects/${projectId}/playtests`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
+  updatePlaytest(
+    projectId: string,
+    playtestId: string,
+    input: Partial<PlaytestRecordInput>,
+  ): Promise<PlaytestRecord> {
+    return request<PlaytestRecord>(`/projects/${projectId}/playtests/${playtestId}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
+
+  deletePlaytest(projectId: string, playtestId: string): Promise<void> {
+    return request<void>(`/projects/${projectId}/playtests/${playtestId}`, {
+      method: "DELETE",
     });
   },
 

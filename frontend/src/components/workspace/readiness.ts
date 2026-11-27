@@ -14,16 +14,26 @@ export function readinessFor(items: ChecklistItem[], project: Project): Readines
     if (paidOnly && project.releaseType !== "PAID") return "na";
     return stateOfItem(findItem(keyword));
   };
+  const playtestReady = project.playtestTotal >= 3 && project.playtestUzu >= 1;
+  const playtestDetail = `合計${project.playtestTotal}回 / UZU ${project.playtestUzu}回`;
+  const questionnaireDetail = `回収済み ${project.playtestQuestionnaire}件`;
   return [
     {
       label: "テスト3回以上",
-      detail: "UZU 1回を含む",
-      state: stateOf("テストプレイ3回", true),
+      detail: project.releaseType === "PAID" ? playtestDetail : "UZU 1回を含む",
+      state:
+        project.releaseType === "PAID" ? (playtestReady ? "done" : "pending") : "na",
     },
     {
       label: "アンケート提出",
-      detail: "有料作品の詳細審査",
-      state: stateOf("アンケート", true),
+      detail:
+        project.releaseType === "PAID" ? questionnaireDetail : "有料作品の詳細審査",
+      state:
+        project.releaseType === "PAID"
+          ? project.playtestQuestionnaire > 0
+            ? "done"
+            : "pending"
+          : "na",
     },
     {
       label: "審査・公開",

@@ -2,11 +2,13 @@ package com.example.uzu.service;
 
 import com.example.uzu.domain.ChecklistItem;
 import com.example.uzu.domain.ChecklistStatus;
+import com.example.uzu.domain.PlaytestPlatform;
 import com.example.uzu.domain.Project;
 import com.example.uzu.domain.ReleaseType;
 import com.example.uzu.domain.ScoringRule;
 import com.example.uzu.domain.Stage;
 import com.example.uzu.repository.ChecklistItemRepository;
+import com.example.uzu.repository.PlaytestRecordRepository;
 import com.example.uzu.repository.ProjectRepository;
 import com.example.uzu.web.dto.ProjectCreateRequest;
 import com.example.uzu.web.dto.ProjectResponse;
@@ -49,6 +51,10 @@ class ProjectServiceTest {
     /** チェック項目リポジトリのモック。 */
     @Mock
     private ChecklistItemRepository checklistItemRepository;
+
+    /** テストプレイ記録リポジトリのモック。 */
+    @Mock
+    private PlaytestRecordRepository playtestRecordRepository;
 
     /** テスト対象のサービス。 */
     @InjectMocks
@@ -132,6 +138,28 @@ class ProjectServiceTest {
         assertThatThrownBy(() -> projectService.findById(id))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("作品が見つかりません。");
+    }
+
+    /**
+     * 作品取得時に、テストプレイの合計回数・UZU回数・アンケート回収件数が含まれることを検証します。
+     */
+    @Test
+    @DisplayName("作品の取得: テストプレイの集計を含める")
+    void findById_includesPlaytestSummary() {
+        UUID id = UUID.randomUUID();
+        Project project = project(id, "テストプレイ集計");
+        given(projectRepository.findById(id)).willReturn(Optional.of(project));
+        given(checklistItemRepository.countByProjectId(id)).willReturn(13L);
+        given(checklistItemRepository.countByProjectIdAndStatus(id, ChecklistStatus.DONE)).willReturn(4L);
+        given(playtestRecordRepository.countByProjectId(id)).willReturn(3L);
+        given(playtestRecordRepository.countByProjectIdAndPlatform(id, PlaytestPlatform.UZU)).willReturn(2L);
+        given(playtestRecordRepository.countByProjectIdAndQuestionnaireCollectedTrue(id)).willReturn(1L);
+
+        ProjectResponse response = projectService.findById(id);
+
+        assertThat(response.getPlaytestTotal()).isEqualTo(3);
+        assertThat(response.getPlaytestUzu()).isEqualTo(2);
+        assertThat(response.getPlaytestQuestionnaire()).isEqualTo(1);
     }
 
     /**

@@ -1,9 +1,11 @@
 package com.example.uzu.service;
 
 import com.example.uzu.domain.ChecklistStatus;
+import com.example.uzu.domain.PlaytestPlatform;
 import com.example.uzu.domain.Project;
 import com.example.uzu.domain.Stage;
 import com.example.uzu.repository.ChecklistItemRepository;
+import com.example.uzu.repository.PlaytestRecordRepository;
 import com.example.uzu.repository.ProjectRepository;
 import com.example.uzu.web.dto.ProjectCreateRequest;
 import com.example.uzu.web.dto.ProjectResponse;
@@ -40,15 +42,23 @@ public class ProjectService {
     private final ChecklistItemRepository checklistItemRepository;
 
     /**
+     * テストプレイ記録リポジトリ
+     */
+    private final PlaytestRecordRepository playtestRecordRepository;
+
+    /**
      * 作品サービスを生成します。
      *
      * @param projectRepository 作品リポジトリ
      * @param checklistItemRepository チェックリストリポジトリ
+     * @param playtestRecordRepository テストプレイ記録リポジトリ
      */
     public ProjectService(final ProjectRepository projectRepository,
-                          final ChecklistItemRepository checklistItemRepository) {
+                          final ChecklistItemRepository checklistItemRepository,
+                          final PlaytestRecordRepository playtestRecordRepository) {
         this.projectRepository = projectRepository;
         this.checklistItemRepository = checklistItemRepository;
+        this.playtestRecordRepository = playtestRecordRepository;
     }
 
     /**
@@ -218,6 +228,12 @@ public class ProjectService {
         final long total = checklistItemRepository.countByProjectId(project.getId());
         final long completed = checklistItemRepository.countByProjectIdAndStatus(
                 project.getId(), ChecklistStatus.DONE);
-        return ProjectResponse.from(project, completed, total);
+        final long playtestTotal = playtestRecordRepository.countByProjectId(project.getId());
+        final long playtestUzu = playtestRecordRepository.countByProjectIdAndPlatform(
+                project.getId(), PlaytestPlatform.UZU);
+        final long playtestQuestionnaire =
+                playtestRecordRepository.countByProjectIdAndQuestionnaireCollectedTrue(project.getId());
+        return ProjectResponse.from(
+                project, completed, total, playtestTotal, playtestUzu, playtestQuestionnaire);
     }
 }

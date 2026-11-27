@@ -3,6 +3,8 @@ import type {
   ChecklistItem,
   ChecklistStatus,
   GuideFaq,
+  PlaytestPlatform,
+  PlaytestRecord,
   Project,
   ProjectSectionState,
   ReleaseType,
@@ -23,6 +25,7 @@ export interface ApiRequestRecord {
 export interface ApiMockState {
   projects: Project[];
   checklists: Record<string, ChecklistItem[]>;
+  playtests: Record<string, PlaytestRecord[]>;
   sections: Record<string, ProjectSectionState>;
   guideFaqs: GuideFaq[];
   requests: ApiRequestRecord[];
@@ -32,6 +35,7 @@ export interface ApiMockState {
 export interface ApiMockSeed {
   projects: Project[];
   checklists?: Record<string, ChecklistItem[]>;
+  playtests?: Record<string, PlaytestRecord[]>;
   sections?: Record<string, ProjectSectionState>;
   guideFaqs?: GuideFaq[];
 }
@@ -76,6 +80,7 @@ const DEFAULT_GUIDE_FAQS: GuideFaq[] = [
 ];
 
 let nextItemOrder = 1;
+let nextPlaytestOrder = 1;
 
 /**
  * テスト用の作品を生成します。
@@ -101,6 +106,41 @@ export function makeProject(overrides: Partial<Project> = {}): Project {
     archived: false,
     checklistCompleted: 1,
     checklistTotal: 2,
+    playtestTotal: 0,
+    playtestUzu: 0,
+    playtestQuestionnaire: 0,
+    createdAt: BASE_TIME,
+    updatedAt: BASE_TIME,
+    ...overrides,
+  };
+}
+
+/**
+ * テスト用のテストプレイ記録を生成します。
+ *
+ * @param projectId 作品ID
+ * @param playedAt 実施日
+ * @param platform 実施場所
+ * @param overrides 上書きする項目
+ * @returns テスト用のテストプレイ記録
+ */
+export function makePlaytest(
+  projectId: string,
+  playedAt: string,
+  platform: PlaytestPlatform = "UZU",
+  overrides: Partial<PlaytestRecord> = {},
+): PlaytestRecord {
+  return {
+    id: `playtest-${nextPlaytestOrder++}`,
+    projectId,
+    playedAt,
+    platform,
+    participantCount: 4,
+    versionNote: "v1.0",
+    questionnaireCollected: false,
+    questionnaireUrl: null,
+    findings: null,
+    memo: null,
     createdAt: BASE_TIME,
     updatedAt: BASE_TIME,
     ...overrides,
@@ -181,10 +221,24 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
   const state: ApiMockState = {
     projects: [...seed.projects],
     checklists: { ...(seed.checklists ?? {}) },
+    playtests: { ...(seed.playtests ?? {}) },
     sections: { ...(seed.sections ?? {}) },
     guideFaqs: [...(seed.guideFaqs ?? DEFAULT_GUIDE_FAQS)],
     requests: [],
   };
+
+  const syncPlaytestCounts = (projectId: string) => {
+    const project = state.projects.find((entry) => entry.id === projectId);
+    if (!project) return;
+    const records = state.playtests[projectId] ?? [];
+    project.playtestTotal = records.length;
+    project.playtestUzu = records.filter((record) => record.platform === "UZU").length;
+    project.playtestQuestionnaire = records.filter(
+      (record) => record.questionnaireCollected,
+    ).length;
+  };
+
+  Object.keys(state.playtests).forEach(syncPlaytestCounts);
 
   await page.route("**/api/v1/**", async (route) => {
     const request = route.request();
@@ -198,6 +252,8 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
     const archiveMatch = path.match(/^\/projects\/([^/]+)\/archive$/);
     const checklistMatch = path.match(/^\/projects\/([^/]+)\/checklist$/);
     const checklistItemMatch = path.match(/^\/projects\/([^/]+)\/checklist\/([^/]+)$/);
+    const playtestMatch = path.match(/^\/projects\/([^/]+)\/playtests$/);
+    const playtestItemMatch = path.match(/^\/projects\/([^/]+)\/playtests\/([^/]+)$/);
     const sectionMatch = path.match(/^\/projects\/([^/]+)\/sections\/([^/]+)$/);
     const guideFaqsMatch = path === "/guide-faqs";
 
@@ -303,6 +359,53 @@ export async function installApiMock(page: Page, seed: ApiMockSeed): Promise<Api
         Object.assign(item, body ?? {}, { updatedAt: new Date().toISOString() });
       }
       return route.fulfill(json(item));
+    }
+
+    if (playtestMatch && method === "GET") {
+      return route.fulfill(json(state.playtests[playtestMatch[1]] ?? []));
+    }
+
+    if (playtestMatch && method === "POST") {
+      const projectId = playtestMatch[1];
+      const input = (body ?? {}) as Partial<PlaytestRecord>;
+      const now = new Date().toISOString();
+      const record = makePlaytest(
+        projectId,
+        input.playedAt ?? "2026-11-01",
+        input.platform ?? "UZU",
+        {
+          participantCount: input.participantCount ?? null,
+          versionNote: input.versionNote ?? null,
+          questionnaireCollected: input.questionnaireCollected ?? false,
+          questionnaireUrl: input.questionnaireUrl || null,
+          findings: input.findings ?? null,
+          memo: input.memo ?? null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      );
+      state.playtests[projectId] = [...(state.playtests[projectId] ?? []), record];
+      syncPlaytestCounts(projectId);
+      return route.fulfill(json(record, 201));
+    }
+
+    if (playtestItemMatch) {
+      const [, projectId, playtestId] = playtestItemMatch;
+      const records = state.playtests[projectId] ?? [];
+      const record = records.find((entry) => entry.id === playtestId);
+      if (!record) {
+        return route.fulfill(json({ error: { message: "テストプレイ記録が見つかりません。" } }, 404));
+      }
+      if (method === "PATCH") {
+        Object.assign(record, body ?? {}, { updatedAt: new Date().toISOString() });
+        syncPlaytestCounts(projectId);
+        return route.fulfill(json(record));
+      }
+      if (method === "DELETE") {
+        state.playtests[projectId] = records.filter((entry) => entry.id !== playtestId);
+        syncPlaytestCounts(projectId);
+        return route.fulfill({ status: 204 });
+      }
     }
 
     if (sectionMatch) {

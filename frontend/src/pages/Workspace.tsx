@@ -5,6 +5,7 @@ import { Loading } from "../components/Loading";
 import { SectionNav } from "../components/SectionNav";
 import { ChecklistPanel } from "../components/workspace/ChecklistPanel";
 import { GuidancePanel } from "../components/workspace/GuidancePanel";
+import { PlaytestPanel } from "../components/workspace/PlaytestPanel";
 import { ProjectEditModal } from "../components/workspace/ProjectEditModal";
 import { SectionDetail } from "../components/workspace/SectionDetail";
 import { SectionMemoPanel } from "../components/workspace/SectionMemoPanel";
@@ -33,6 +34,7 @@ export function Workspace() {
     activeProgress,
     doneCount,
     readiness,
+    updatePlaytestCounts,
     changeStatus,
     changeMemo,
     addItem,
@@ -92,6 +94,14 @@ export function Workspace() {
 
         <div className="workspace-content">
           <SectionDetail section={activeSection} nextItem={sectionNext} />
+
+          {activeKey === "PLAYTEST" && (
+            <PlaytestPanel
+              project={project}
+              demo={demo}
+              onCountsChange={updatePlaytestCounts}
+            />
+          )}
 
           <ChecklistPanel
             items={activeItems}

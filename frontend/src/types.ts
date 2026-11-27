@@ -12,6 +12,7 @@ export type Stage =
 export type ReleaseType = "FREE" | "PAID";
 export type ScoringRule = "TIE_ALLOWED" | "SOLE_TOP_REQUIRED";
 export type ChecklistStatus = "NOT_STARTED" | "IN_PROGRESS" | "DONE";
+export type PlaytestPlatform = "UZU" | "OTHER";
 
 export interface Project {
   id: string;
@@ -30,6 +31,9 @@ export interface Project {
   archived: boolean;
   checklistCompleted: number;
   checklistTotal: number;
+  playtestTotal: number;
+  playtestUzu: number;
+  playtestQuestionnaire: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,6 +50,32 @@ export interface ChecklistItem {
   displayOrder: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PlaytestRecord {
+  id: string;
+  projectId: string;
+  playedAt: string;
+  platform: PlaytestPlatform;
+  participantCount: number | null;
+  versionNote: string | null;
+  questionnaireCollected: boolean;
+  questionnaireUrl: string | null;
+  findings: string | null;
+  memo: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlaytestRecordInput {
+  playedAt: string;
+  platform: PlaytestPlatform;
+  participantCount?: number;
+  versionNote?: string;
+  questionnaireCollected?: boolean;
+  questionnaireUrl?: string;
+  findings?: string;
+  memo?: string;
 }
 
 export interface ProjectSectionState {
@@ -154,6 +184,11 @@ export const RELEASE_LABELS: Record<ReleaseType, string> = {
 export const SCORING_LABELS: Record<ScoringRule, string> = {
   TIE_ALLOWED: "同数最多を許可",
   SOLE_TOP_REQUIRED: "単独最多のみ",
+};
+
+export const PLAYTEST_PLATFORM_LABELS: Record<PlaytestPlatform, string> = {
+  UZU: "UZU上",
+  OTHER: "UZU外",
 };
 
 export const STATUS_LABELS: Record<ChecklistStatus, string> = {

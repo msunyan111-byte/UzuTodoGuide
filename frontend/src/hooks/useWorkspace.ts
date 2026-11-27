@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, isConnectionError } from "../api";
 import { useToast } from "../components/Toast";
 import { readinessFor } from "../components/workspace/readiness";
 import { DEMO_CHECKLIST, DEMO_PROJECT, DEMO_PROJECT_ID } from "../data/demo";
 import { SECTIONS } from "../data/uzu";
+import type { PlaytestCounts } from "./usePlaytests";
 import type { ChecklistItem, ChecklistStatus, Project, SectionDefinition } from "../types";
 import {
   errorMessage,
@@ -86,6 +87,19 @@ export function useWorkspace(projectId: string, activeKey: string) {
   const activeProgress = sectionProgress(activeItems);
   const doneCount = items.filter((item) => item.status === "DONE").length;
   const readiness = project ? readinessFor(items, project) : [];
+
+  const updatePlaytestCounts = useCallback((counts: PlaytestCounts) => {
+    setProject((current) =>
+      current
+        ? {
+            ...current,
+            playtestTotal: counts.total,
+            playtestUzu: counts.uzu,
+            playtestQuestionnaire: counts.questionnaire,
+          }
+        : current,
+    );
+  }, []);
 
   const markSaving = (id: string, saving: boolean) => {
     setSavingIds((current) => {
@@ -189,6 +203,7 @@ export function useWorkspace(projectId: string, activeKey: string) {
     activeProgress,
     doneCount,
     readiness,
+    updatePlaytestCounts,
     changeStatus,
     changeMemo,
     addItem,

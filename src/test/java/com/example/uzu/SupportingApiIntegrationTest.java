@@ -83,6 +83,10 @@ class SupportingApiIntegrationTest {
         assertThat(created.get("createdAt").asText()).endsWith("+09:00");
 
         assertThat(get(path, HttpStatus.OK)).hasSize(1);
+        final JsonNode projectAfterCreate = get("/api/v1/projects/" + projectId, HttpStatus.OK);
+        assertThat(projectAfterCreate.get("playtestTotal").asLong()).isEqualTo(1);
+        assertThat(projectAfterCreate.get("playtestUzu").asLong()).isEqualTo(1);
+        assertThat(projectAfterCreate.get("playtestQuestionnaire").asLong()).isEqualTo(1);
 
         final JsonNode updated = send(path + "/" + playtestId, HttpMethod.PATCH, mapOf(
                 "platform", "OTHER",
@@ -95,8 +99,15 @@ class SupportingApiIntegrationTest {
         assertThat(updated.get("questionnaireCollected").asBoolean()).isFalse();
         assertThat(updated.get("memo").asText()).isEqualTo("更新済み");
 
+        final JsonNode projectAfterUpdate = get("/api/v1/projects/" + projectId, HttpStatus.OK);
+        assertThat(projectAfterUpdate.get("playtestTotal").asLong()).isEqualTo(1);
+        assertThat(projectAfterUpdate.get("playtestUzu").asLong()).isZero();
+        assertThat(projectAfterUpdate.get("playtestQuestionnaire").asLong()).isZero();
+
         send(path + "/" + playtestId, HttpMethod.DELETE, null, HttpStatus.NO_CONTENT);
         assertThat(get(path, HttpStatus.OK)).isEmpty();
+        final JsonNode projectAfterDelete = get("/api/v1/projects/" + projectId, HttpStatus.OK);
+        assertThat(projectAfterDelete.get("playtestTotal").asLong()).isZero();
     }
 
     /**

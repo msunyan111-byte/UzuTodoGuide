@@ -251,7 +251,7 @@ UI E2E は `frontend/e2e/` にあり、バックエンド不要で動作しま�
 | `TIE_ALLOWED` | 単独最多でなく、同数最多でも条件を満たす（既定） |
 | `SOLE_TOP_REQUIRED` | 単独最多である場合のみ条件を満たす |
 
-`ProjectResponse` には `checklistCompleted` と `checklistTotal` が含まれます。
+`ProjectResponse` には `checklistCompleted` / `checklistTotal` と、テストプレイ集計の `playtestTotal` / `playtestUzu` / `playtestQuestionnaire` が含まれます。`playtestQuestionnaire` はアンケートを回収済みの記録数です。
 
 ### チェックリスト
 

@@ -43,6 +43,9 @@ test.describe("ダッシュボード画面", () => {
       await expect(page.locator(".hero-card")).toContainText("作品概要の確認");
       await expect(page.locator(".stat-card", { hasText: "進行中の作品" })).toContainText("2");
       await expect(page.locator(".stat-card", { hasText: "完了チェック" })).toContainText("1");
+      await expect(
+        page.getByText("有料作品のテストプレイが、UZU 1回を含む3回以上に届いていません。"),
+      ).toBeVisible();
     });
 
     await test.step("続きからカードからワークスペースへ遷移する", async () => {

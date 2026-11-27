@@ -59,17 +59,15 @@ export function useDashboardData(
     const today = new Date();
     activeProjects.forEach((project) => {
       const items = checklists[project.id] ?? [];
-      if (project.releaseType === "PAID") {
-        const paidTest = items.find(
-          (item) => item.name.includes("テストプレイ3回") && item.status !== "DONE",
-        );
-        if (paidTest) {
-          list.push({
-            text: "有料作品のテストプレイが、UZU 1回を含む3回以上に届いていません。",
-            projectId: project.id,
-            tone: "amber",
-          });
-        }
+      if (
+        project.releaseType === "PAID" &&
+        (project.playtestTotal < 3 || project.playtestUzu < 1)
+      ) {
+        list.push({
+          text: "有料作品のテストプレイが、UZU 1回を含む3回以上に届いていません。",
+          projectId: project.id,
+          tone: "amber",
+        });
       }
       const overdue = items.find(
         (item) =>

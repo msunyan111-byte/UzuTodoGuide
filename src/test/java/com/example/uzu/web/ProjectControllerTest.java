@@ -247,6 +247,6 @@ class ProjectControllerTest {
         return new ProjectResponse(
                 UUID.randomUUID(), title, null, null, null, null,
                 ReleaseType.FREE, Stage.PLANNING, ScoringRule.TIE_ALLOWED, null, null, null, null,
-                archived, 0, 13, now, now);
+                archived, 0, 13, 0, 0, 0, now, now);
     }
 }
